@@ -1,6 +1,7 @@
 import {get, set, isObject, setWith, forOwn, forEach, isNil, isArray, isEmpty, isString, keys, trim} from 'lodash'
 import {ValidatorTypes} from './collections'
 import {config} from './common'
+import {noTrim} from './strings-validators'
 
 const internalProps = new Set(['__type', '__validator', '__valueValidator'])
 const ensureValidatorIsValid = (validator, propName) => {
@@ -25,7 +26,7 @@ const ensureValidatorIsValid = (validator, propName) => {
 const getValue = (entity, path, validators) => {
   let value = get(entity, path, null)
   if (typeof value === 'string' && config.useTrim) {
-    if (!isArray(validators) && validators.indexOf(noTrim) === -1) {
+    if (!isArray(validators) || validators.indexOf(noTrim) === -1) {
       value = trim(value)
     }
   }

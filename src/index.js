@@ -23,7 +23,8 @@ export {
 export {
   minLength,
   maxLength,
-  isEmail
+  isEmail,
+  noTrim
 } from './strings-validators'
 
 export {collection} from './collections'

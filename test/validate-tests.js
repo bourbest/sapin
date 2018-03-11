@@ -1,7 +1,7 @@
 import {expect} from 'chai'
 import {Errors} from '../src/common'
 import {
-  isNumber, required, applyValidator, collection
+  isNumber, required, applyValidator, collection, noTrim
 } from '../src';
 
 describe('applyValidator', function () {
@@ -9,6 +9,45 @@ describe('applyValidator', function () {
     'name': [required],
     'age': [isNumber]
   }
+
+  describe('trim', function () {
+    it('trim all values before passing to validators', function () {
+      let passedValue = null
+      const sampleValidator = (value) => {
+        passedValue = value
+      }
+      const entity = {
+        name: '  test  '
+      }
+      const validator = {
+        name: [sampleValidator]
+      }
+      applyValidator(entity, validator)
+      expect(passedValue).to.equal('test')
+    })
+
+    it('doesnt trim value if noTrim is given', function () {
+      let passedValue1 = null
+      let passedValue2 = null
+      const sampleValidator1 = (value) => {
+        passedValue1 = value
+      }
+      const sampleValidator2 = (value) => {
+        passedValue2 = value
+      }
+      const entity = {
+        name: '  test  ',
+        password: '  test  '
+      }
+      const validator = {
+        name: [sampleValidator1],
+        password: [sampleValidator2, noTrim]
+      }
+      applyValidator(entity, validator)
+      expect(passedValue1).to.equal('test')
+      expect(passedValue2).to.equal('  test  ')
+    })
+  })
 
   describe('on object properties', function () {
     it('returns {} when given an entity that respect all validators', function () {
