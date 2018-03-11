@@ -31,5 +31,5 @@ export {collection} from './collections'
 
 export {
   validateField,
-  applyValidator
+  validate
 } from './validate'

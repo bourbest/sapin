@@ -58,9 +58,7 @@ const validateCollectionOfObjects = (objectCollection, validator, siblings, enti
   return collectionErrors
 }
 
-export const applyValidator = (value, validator, siblings, entity) => {
-  siblings = siblings || value
-  entity = entity || value
+const applyValidator = (value, validator, siblings, entity) => {
   const entityErrors = {}
 
   if (process.env.NODE_ENV !== 'production') {
@@ -113,4 +111,16 @@ export const applyValidator = (value, validator, siblings, entity) => {
   }
 
   return entityErrors
+}
+
+export const validate = (values, validator) => {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!isObject(validator)) {
+      throw new Error('applyValidator second argument must be a validator object')
+    }
+    for (let prop in validator) {
+      ensureValidatorIsValid(validator[prop], prop)
+    }
+  }
+  return applyValidator(values, validator, values, values)
 }

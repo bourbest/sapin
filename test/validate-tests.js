@@ -1,10 +1,10 @@
 import {expect} from 'chai'
 import {Errors} from '../src/common'
 import {
-  isNumber, required, applyValidator, collection, noTrim
+  isNumber, required, validate, collection, noTrim
 } from '../src';
 
-describe('applyValidator', function () {
+describe('validate', function () {
   const simpleValidator = {
     'name': [required],
     'age': [isNumber]
@@ -22,7 +22,7 @@ describe('applyValidator', function () {
       const validator = {
         name: [sampleValidator]
       }
-      applyValidator(entity, validator)
+      validate(entity, validator)
       expect(passedValue).to.equal('test')
     })
 
@@ -43,7 +43,7 @@ describe('applyValidator', function () {
         name: [sampleValidator1],
         password: [sampleValidator2, noTrim]
       }
-      applyValidator(entity, validator)
+      validate(entity, validator)
       expect(passedValue1).to.equal('test')
       expect(passedValue2).to.equal('  test  ')
     })
@@ -55,7 +55,7 @@ describe('applyValidator', function () {
         name: 'Joe',
         age: '35'
       }
-      const ret = applyValidator(entity, simpleValidator)
+      const ret = validate(entity, simpleValidator)
       expect(ret).to.deep.equal({})
     })
 
@@ -64,7 +64,7 @@ describe('applyValidator', function () {
         name: '',
         age: 'test'
       }
-      const ret = applyValidator(entity, simpleValidator)
+      const ret = validate(entity, simpleValidator)
       expect(ret).to.deep.equal({
         name: Errors.required,
         age: Errors.isNumber
@@ -79,7 +79,7 @@ describe('applyValidator', function () {
       const entity = {
         name: {fr: 'test'},
       }
-      const ret = applyValidator(entity, validator)
+      const ret = validate(entity, validator)
       expect(ret).to.deep.equal({
         description: {
           fr: Errors.required
@@ -102,7 +102,7 @@ describe('applyValidator', function () {
 
       const entity = {name: 'test'}
 
-      applyValidator(entity, validator)
+      validate(entity, validator)
       expect(retSiblings).to.equal(entity)
       expect(retEntity).to.equal(entity)
     })
@@ -124,7 +124,7 @@ describe('applyValidator', function () {
           {streetName: 'test', civicNumber: '456'}
         ]
       }
-      const ret = applyValidator(entity, collectionValidator)
+      const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({})
     })
 
@@ -135,7 +135,7 @@ describe('applyValidator', function () {
           home: {streetName: 'test', civicNumber: '456'}
         }
       }
-      const ret = applyValidator(entity, collectionValidator)
+      const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({})
     })
 
@@ -147,7 +147,7 @@ describe('applyValidator', function () {
           {}
         ]
       }
-      const ret = applyValidator(entity, collectionValidator)
+      const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({
         addresses: {
           '1': {
@@ -166,7 +166,7 @@ describe('applyValidator', function () {
           work: {}
         }
       }
-      const ret = applyValidator(entity, collectionValidator)
+      const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({
         addresses: {
           work: {
@@ -194,7 +194,7 @@ describe('applyValidator', function () {
           work: {}
         }
       }
-      const ret = applyValidator(entity, collectionWithValueValidator)
+      const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         addresses: {
           _error: 'sampleError',
@@ -224,7 +224,7 @@ describe('applyValidator', function () {
         ]
       }
 
-      const ret = applyValidator(entity, collectionWithValueValidator)
+      const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         addresses: {
           _error: 'sampleError',
@@ -255,7 +255,7 @@ describe('applyValidator', function () {
           {name: 'test', level2: [{age: ''}]},
         ]
       }
-      const ret = applyValidator(entity, complexCollectionValidator)
+      const ret = validate(entity, complexCollectionValidator)
       expect(ret).to.deep.equal({
         level1: {
           '1': {
@@ -300,7 +300,7 @@ describe('applyValidator', function () {
         ranges: [firstRange, secondRange]
       }
 
-      applyValidator(entity, validator)
+      validate(entity, validator)
       expect(retSiblings.length).to.equal(2)
       expect(retSiblings[0]).to.equal(firstRange)
       expect(retSiblings[1]).to.equal(secondRange)
@@ -319,7 +319,7 @@ describe('applyValidator', function () {
         name: 'Joe',
         scores: ['50', '17', '28']
       }
-      const ret = applyValidator(entity, collectionValidator)
+      const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({})
     })
 
@@ -331,7 +331,7 @@ describe('applyValidator', function () {
           science: '17'
         }
       }
-      const ret = applyValidator(entity, collectionValidator)
+      const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({})
     })
 
@@ -340,7 +340,7 @@ describe('applyValidator', function () {
         name: 'Joe',
         scores: ['50', null, 'sdfa28']
       }
-      const ret = applyValidator(entity, collectionValidator)
+      const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({
         scores: {
           '1': Errors.required,
@@ -358,7 +358,7 @@ describe('applyValidator', function () {
           history: 'sdfa28'
         }
       }
-      const ret = applyValidator(entity, collectionValidator)
+      const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({
         scores: {
           science: Errors.required,
@@ -383,7 +383,7 @@ describe('applyValidator', function () {
         }
       }
 
-      const ret = applyValidator(entity, collectionWithValueValidator)
+      const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         scores: {
           _error: 'sampleError',
@@ -405,7 +405,7 @@ describe('applyValidator', function () {
         scores: ['50', null, 'dfasd']
       }
 
-      const ret = applyValidator(entity, collectionWithValueValidator)
+      const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         scores: {
           _error: 'sampleError',
@@ -433,7 +433,7 @@ describe('applyValidator', function () {
         integers: [10, 45]
       }
 
-      applyValidator(entity, validator)
+      validate(entity, validator)
       expect(retSiblings).to.equal(entity)
       expect(retEntity).to.equal(entity)
     })
@@ -463,7 +463,7 @@ describe('applyValidator', function () {
         ranges: [firstRange]
       }
 
-      applyValidator(entity, validator)
+      validate(entity, validator)
       expect(retSiblings).to.equal(firstRange)
       expect(retEntity).to.equal(entity)
     })
