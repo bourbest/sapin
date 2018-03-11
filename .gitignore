@@ -1,0 +1,6 @@
+## Ignore client app's generated files
+node_modules
+npm-debug.log
+
+## Webstorm
+.idea
