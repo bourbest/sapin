@@ -1,16 +1,17 @@
 {
-  "name": "redux-form-validator",
+  "name": "declarative-validator",
   "license": "MIT",
   "author": "Stephane Bourbeau",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bourbest/redux-form-validator"
+    "url": "https://github.com/bourbest/declarative-validator"
   },
   "version": "0.1.0",
   "description": "Create object validator using a declarative paradigm",
   "main": "./src/index.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test mocha --compilers js:babel-core/register --recursive \"test/*.js\""
+    "test-local": "cross-env NODE_ENV=test mocha --compilers js:babel-core/register --recursive \"test/*.js\"",
+    "test": "mocha --compilers js:babel-core/register --recursive \"test/*.js\""
   },
   "dependencies": {
     "lodash-es": "^4.17.7"
@@ -32,5 +33,5 @@
     "redux-form",
     "validate"
   ],
-  "bugs": "https://github.com/bourbest/redux-form-validator/issues"
+  "bugs": "https://github.com/bourbest/declarative-validator/issues"
 }

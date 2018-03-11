@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/bourbest/redux-form-validator.svg?branch=master)](https://travis-ci.org/bourbest/redux-form-validator)
+[![Build Status](https://travis-ci.org/bourbest/declarative-validator.svg?branch=master)](https://travis-ci.org/bourbest/declarative-validator)
 
-# redux-form-validator
+# declarative-validator
 A library that allows to create an object validation function using a declarative style. The function will store each error
 encountered in the resulting object at the same path as the property that had the error. While it can be used to easily
 validate forms connected with [redux-form](https://redux-form.com), it can validate any structure.
@@ -14,7 +14,7 @@ validate forms connected with [redux-form](https://redux-form.com), it can valid
 # Example
 ```js
 // Load validators functions
-import {applyValidator, required, collection, isPhone, isInteger} from 'redux-form-validators'
+import {applyValidator, required, collection, isPhone, isInteger} from 'declarative-validator'
 
 // create a validator object
 const UserValidator = {
@@ -59,12 +59,12 @@ Output is :
 
 Using npm:
 ```shell
-$ npm i --save redux-form-validator
+$ npm i --save declarative-validator
 ```
 
-redux-form-validators is released under the [MIT license](https://github.com/bourbest/redux-form-validator/blob/master/LICENSE)
+declarative-validator is released under the [MIT license](https://github.com/bourbest/declarative-validator/blob/master/LICENSE)
 
-## Why redux-form-validator?
+## Why declarative-validator?
 
 TODO
 
