@@ -1,10 +1,10 @@
 {
-  "name": "declarative-validator",
+  "name": "sapin",
   "license": "MIT",
   "author": "Stephane Bourbeau",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bourbest/declarative-validator"
+    "url": "https://github.com/bourbest/sapin"
   },
   "version": "0.1.0",
   "description": "Create object validator using a declarative paradigm",
@@ -33,5 +33,5 @@
     "redux-form",
     "validate"
   ],
-  "bugs": "https://github.com/bourbest/declarative-validator/issues"
+  "bugs": "https://github.com/bourbest/sapin/issues"
 }
