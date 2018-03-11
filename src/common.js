@@ -13,22 +13,32 @@ export const Errors = {
 }
 
 const internalFormatError = (error, errorParams, formatParams) => {
-  return {
-    error,
-    params: errorParams
+  if (errorParams) {
+    return {error, params: errorParams}
   }
+  return error
 }
 
-const config = {
+export const config = {
   formatError: internalFormatError,
-  formatErrorParams: null
+  formatErrorParams: null,
+  useTrim: true
 }
 
 export const isEmptyValue = (value) => value === undefined || value === null || value === ''
 
-export const configureValidators = ({formatError, formatErrorParams}) => {
-  config.formatError = formatError
-  config.formatErrorParams = formatErrorParams
+export const configureValidators = (newConfig) => {
+  if (process.env.NODE_ENV !== 'production') {
+    const KNOWN_KEYS = new Set(['formatError', 'formatErrorParams', 'useTrim'])
+    for (let prop in newConfig) {
+      if (!KNOWN_KEYS.has(prop)) {
+        throw new Error(`configureValidators received an unexpected key '${prop}'`)
+      }
+    }
+  }
+  for (let prop in newConfig) {
+    config[prop] = newConfig[prop]
+  }
 }
 
 export const err = (error, params) => {

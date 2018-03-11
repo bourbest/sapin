@@ -46,11 +46,6 @@ describe('isNumber', function () {
     expect(ret).to.equal(null)
   })
 
-  it('returns Error.isNumber when given a number with decimal using the comma and a config that doesnt supports them', function () {
-    const ret = isNumber('1,5')
-    expect(ret).to.equal(Errors.isNumber)
-  })
-
   it('returns Error.isNumber when given a number two dots', function () {
     const ret = isNumber('1.5.9')
     expect(ret).to.equal(Errors.isNumber)

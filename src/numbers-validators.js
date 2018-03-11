@@ -8,7 +8,7 @@ import {
 // caller should not pass undefined or null
 const getTransformedNumber = (value) => {
   let transformedValue = value
-  if (isString(transformedValue) && config.numbersUseComaOrDot) {
+  if (isString(transformedValue)) {
     transformedValue = transformedValue.replace(',', '.')
   }
   return Number(transformedValue)

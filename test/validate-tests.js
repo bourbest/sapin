@@ -48,6 +48,25 @@ describe('applyValidator', function () {
       })
     })
 
+    it('passes sibling and entity to validation function', function () {
+      let retSiblings = null
+      let retEntity = null
+
+      const sampleValidator = (value, siblings, entity) => {
+        retSiblings = siblings
+        retEntity = entity
+      }
+
+      const validator = {
+        name: [sampleValidator]
+      }
+
+      const entity = {name: 'test'}
+
+      applyValidator(entity, validator)
+      expect(retSiblings).to.equal(entity)
+      expect(retEntity).to.equal(entity)
+    })
   })
 
   describe('on collectionOfObjects', function () {
@@ -213,6 +232,41 @@ describe('applyValidator', function () {
         }
       })
     })
+
+    it('passes sibling and entity to validation function', function () {
+      let retSiblings = []
+      let retEntity = null
+
+      const sampleValidator = (value, siblings, entity) => {
+        retSiblings.push(siblings)
+        retEntity = entity
+      }
+
+      const validator = {
+        ranges: collection({
+          from: [sampleValidator]
+        })
+      }
+
+      const firstRange = {
+        from: 0,
+        to: 1
+      }
+
+      const secondRange = {
+        from: 1,
+        to: 25
+      }
+      const entity = {
+        ranges: [firstRange, secondRange]
+      }
+
+      applyValidator(entity, validator)
+      expect(retSiblings.length).to.equal(2)
+      expect(retSiblings[0]).to.equal(firstRange)
+      expect(retSiblings[1]).to.equal(secondRange)
+      expect(retEntity).to.equal(entity)
+    })
   })
 
   describe('on collectionOfValues', function () {
@@ -320,6 +374,59 @@ describe('applyValidator', function () {
           '2': Errors.isNumber
         }
       })
+    })
+
+    it('passes sibling and entity to validation function', function () {
+      let retSiblings = null
+      let retEntity = null
+
+      const sampleValidator = (value, siblings, entity) => {
+        retSiblings = siblings
+        retEntity = entity
+      }
+
+      const validator = {
+        integers: collection([sampleValidator])
+      }
+
+      const entity = {
+        name: 'Joe',
+        integers: [10, 45]
+      }
+
+      applyValidator(entity, validator)
+      expect(retSiblings).to.equal(entity)
+      expect(retEntity).to.equal(entity)
+    })
+
+    it('passes sibling and entity to validation function', function () {
+      let retSiblings = null
+      let retEntity = null
+
+      const sampleValidator = (value, siblings, entity) => {
+        retSiblings = siblings
+        retEntity = entity
+      }
+
+      const validator = {
+        ranges: collection({
+          integers: collection([sampleValidator])
+        })
+      }
+
+      const firstRange = {
+        integers: [10, 45],
+        name: 'range 1'
+      }
+
+      const entity = {
+        name: 'Joe',
+        ranges: [firstRange]
+      }
+
+      applyValidator(entity, validator)
+      expect(retSiblings).to.equal(firstRange)
+      expect(retEntity).to.equal(entity)
     })
   })
 })

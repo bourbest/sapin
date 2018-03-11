@@ -25,3 +25,5 @@ export const maxLength = (maxLength) => {
   }
 }
 
+export const noTrim = () => true
+

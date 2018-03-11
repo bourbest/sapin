@@ -1,5 +1,6 @@
-import {get, set, isObject, setWith, forOwn, forEach, isNil, isArray, isEmpty, isString, keys} from 'lodash'
+import {get, set, isObject, setWith, forOwn, forEach, isNil, isArray, isEmpty, isString, keys, trim} from 'lodash'
 import {ValidatorTypes} from './collections'
+import {config} from './common'
 
 const internalProps = new Set(['__type', '__validator', '__valueValidator'])
 const ensureValidatorIsValid = (validator, propName) => {
@@ -21,34 +22,33 @@ const ensureValidatorIsValid = (validator, propName) => {
   }
 }
 
-export const validateField = (value, validations, siblings, entity) => {
-  let err = null
-  if (validations.__type === ValidatorTypes.object) {
-    const validator = validations.__validator
-    const valueKeys = keys(value)
-    for (let i = 0; i < valueKeys.length; i++) {
-      const key = valueKeys[i]
-      const val = value[key]
-      const error = validateField(val, validator, siblings, entity)
-      if (error) {
-        return {[key]: error}
-      }
-    }
-  } else {
-    for (let i = 0; !err && i < validations.length; i++) {
-      const validation = validations[i]
-      err = validation(value, entity)
+const getValue = (entity, path, validators) => {
+  let value = get(entity, path, null)
+  if (typeof value === 'string' && config.useTrim) {
+    if (!isArray(validators) && validators.indexOf(noTrim) === -1) {
+      value = trim(value)
     }
   }
+  return value
+}
+
+export const validateField = (value, validations, siblings, entity) => {
+  let err = null
+
+  for (let i = 0; !err && i < validations.length; i++) {
+    const validation = validations[i]
+    err = validation(value, siblings, entity)
+  }
+
   return err
 }
 
-const validateCollectionOfObjects = (objectCollection, validator) => {
+const validateCollectionOfObjects = (objectCollection, validator, siblings, entity) => {
   const collectionErrors = {}
 
   if (objectCollection) {
-    forEach(objectCollection, (entity, idx) => {
-      let entityErrors = applyValidator(entity, validator)
+    forEach(objectCollection, (value, idx) => {
+      const entityErrors = applyValidator(value, validator, value, entity)
       if (!isEmpty(entityErrors)) {
         collectionErrors[idx] = entityErrors
       }
@@ -57,7 +57,9 @@ const validateCollectionOfObjects = (objectCollection, validator) => {
   return collectionErrors
 }
 
-export const applyValidator = (entity, validator) => {
+export const applyValidator = (value, validator, siblings, entity) => {
+  siblings = siblings || value
+  entity = entity || value
   const entityErrors = {}
 
   if (process.env.NODE_ENV !== 'production') {
@@ -69,23 +71,25 @@ export const applyValidator = (entity, validator) => {
     }
   }
 
-  forOwn(validator, (fieldValidations, fieldName) => {
-    const fieldValue = get(entity, fieldName)
+  for (let fieldName in validator) {
+    const fieldValidations = validator[fieldName]
+    const fieldValue = getValue(value, fieldName, fieldValidations)
+
     if (isArray(fieldValidations)) {
-      const fieldError = validateField(fieldValue, fieldValidations, entity)
+      const fieldError = validateField(fieldValue, fieldValidations, siblings, entity)
       if (fieldError) {
         set(entityErrors, fieldName, fieldError)
       }
     } else {
       if (fieldValidations.__valueValidator) {
-        const valueError = validateField(fieldValue, fieldValidations.__valueValidator)
+        const valueError = validateField(fieldValue, fieldValidations.__valueValidator, siblings, entity)
         if (valueError) {
           set(entityErrors, `${fieldName}._error`, valueError)
         }
       }
 
       if (fieldValidations.__type === ValidatorTypes.collectionOfObjects) {
-        const fieldError = validateCollectionOfObjects(fieldValue, fieldValidations.__validator)
+        const fieldError = validateCollectionOfObjects(fieldValue, fieldValidations.__validator, siblings, entity)
         if (fieldError) {
           for (let propName in fieldError) {
             const propError = fieldError[propName]
@@ -93,18 +97,19 @@ export const applyValidator = (entity, validator) => {
               setWith(entityErrors, `${fieldName}.${propName}`, propError, Object)
             }
           }
-
         }
       } else if (fieldValidations.__type === ValidatorTypes.collectionOfValues) {
-        forEach(fieldValue, (value, key) => {
-          const fieldError = validateField(value, fieldValidations.__validator, entity)
+        for (let key in fieldValue) {
+          const valueToValidate = getValue(fieldValue, key, fieldValidations.__validator)
+
+          const fieldError = validateField(valueToValidate, fieldValidations.__validator, siblings, entity)
           if (!isEmpty(fieldError)) {
-            setWith(entityErrors, `${fieldName}[${key}]`, fieldError, Object)
+            setWith(entityErrors, `${fieldName}.${key}`, fieldError, Object)
           }
-        })
+        }
       }
     }
-  })
+  }
 
   return entityErrors
 }
