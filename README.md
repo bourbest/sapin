@@ -1,50 +1,73 @@
+[![Build Status](https://travis-ci.org/bourbest/redux-form-validator.svg?branch=master)](https://travis-ci.org/bourbest/redux-form-validator)
+
 # redux-form-validator
-A simple library that allows to create a validation function using a declarative style
+A library that allows to create an object validation function using a declarative style. The function will store each error
+encountered in the resulting object at the same path as the property that had the error. While it can be used to easily
+validate forms connected with [redux-form](https://redux-form.com), it can validate any structure.
+
+## Features
+* Provide functions for most basic field validations (no date validations, see why)
+* Support the validation of attributes that are arrays of values, array of objects, map of objects, map of values
+* Easily add your own custom validator functions
+* Provide your formatError function to easily translate errors in the user's selected language
+
+# Example
+```js
+// Load validators functions
+import {applyValidator, required, collection, isPhone, isInteger} from 'redux-form-validators'
+
+// create a validator object
+const UserValidator = {
+  firstName: [required],
+  lastName: [required],
+  age: [required, isInteger],
+  phones: collection([isPhone])
+}
+
+// validation function that is called when validating your form or object
+export const validateUserForm = (values) => {
+  return applyValidator(values, UserValidator)
+}
+
+...
+
+// test
+const user = {
+  firstName: 'Joe',   // pass
+                      // no lastName provided
+  age: 5.5,           // not an integer
+  phones: ['879879', '555-555-5555']  // first phone is invalid
+}
+
+const error = validateUserForm(user)
+
+console.log(error)
+```
+
+Output is :
+```shell
+{
+  lastName: 'required',
+  age: 'invalidInteger',
+  phones {
+    '0': 'invalidPhoneNumber'
+  }
+}
+```
 
 ## Installation
 
-In a browser:
-```html
-<script src="redux-form-validators.js"></script>
-```
-
 Using npm:
 ```shell
-$ npm i -g npm
-$ npm i --save lodash
+$ npm i --save redux-form-validator
 ```
-
-In Node.js:
-```js
-// Load the full build.
-var _ = require('lodash');
-// Load the core build.
-var _ = require('lodash/core');
-// Load the FP build for immutable auto-curried iteratee-first data-last methods.
-var fp = require('lodash/fp');
-
-// Load method categories.
-var array = require('lodash/array');
-var object = require('lodash/fp/object');
-
-// Cherry-pick methods for smaller browserify/rollup/webpack bundles.
-var at = require('lodash/at');
-var curryN = require('lodash/fp/curryN');
-```
-
-**Note:**<br>
-Install [n_](https://www.npmjs.com/package/n_) for Lodash use in the Node.js < 6 REPL.
-
-## Why Lodash?
-
-Lodash makes JavaScript easier by taking the hassle out of working with arrays,<br>
-numbers, objects, strings, etc. Lodash’s modular methods are great for:
-
-
-## Install
-
- * [Core build](https://raw.githubusercontent.com/lodash/lodash/4.17.4/dist/lodash.core.js) ([~4 kB gzipped](https://raw.githubusercontent.com/lodash/lodash/4.17.4/dist/lodash.core.min.js))
- * [Full build](https://raw.githubusercontent.com/lodash/lodash/4.17.4/dist/lodash.js) ([~24 kB gzipped](https://raw.githubusercontent.com/lodash/lodash/4.17.4/dist/lodash.min.js))
 
 redux-form-validators is released under the [MIT license](https://github.com/bourbest/redux-form-validator/blob/master/LICENSE)
+
+## Why redux-form-validator?
+
+TODO
+
+
+
 
