@@ -21,6 +21,7 @@ export const collection = (validator, valueValidator) => {
     __valueValidator: valueValidator
   }
 
+  /* istanbul ignore else: node-env */
   if (process.env.NODE_ENV !== 'production') {
     if (!isObjectOrArrayOfFunctions(validator)) {
       throw new Error('The \'validator\' argument of collection must be a validator object or an array of validator functions')

@@ -4,3 +4,5 @@ npm-debug.log
 
 ## Webstorm
 .idea
+.nyc_output
+coverage

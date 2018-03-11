@@ -1,9 +1,16 @@
 {
+  "comments": true,
+  "presets": [
+    "env"
+  ],
+  "plugins": ["istanbul"],
   "env": {
     "test": {
+      "comments": true,
       "presets": [
         "env"
-      ]
+      ],
+      "plugins": ["istanbul"]
     }
   }
 }
