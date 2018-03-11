@@ -1,7 +1,11 @@
 {
   "name": "redux-form-validator",
   "license": "MIT",
-  "repository": "https://github.com/bourbest/redux-form-validator",
+  "author": "Stephane Bourbeau",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bourbest/redux-form-validator"
+  },
   "version": "0.1.0",
   "description": "Create object validator using a declarative paradigm",
   "main": "./src/index.js",
@@ -23,6 +27,6 @@
   "directories": {
     "test": "test"
   },
-  "keywords": [],
-  "bugs": {}
+  "keywords": ["redux-form", "validate"],
+  "bugs": "https://github.com/bourbest/redux-form-validator/issues"
 }
