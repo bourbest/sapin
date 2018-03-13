@@ -10,6 +10,25 @@ describe('validate', function () {
     'age': [isNumber]
   }
 
+  describe('ensureValidatorIsValid', function () {
+    it('throws when validator has an invalid prop', function () {
+      const validator = {name: {firstName: ''}}
+      const test = () => validate({}, validator)
+      expect(test).to.throw('validator definition at path name.firstName must be an object or an array of validator function')
+    })
+
+    it('throws when validator has a non function', function () {
+      const validator = {name: {firstName: [undefined]}}
+      const test = () => validate({}, validator)
+      expect(test).to.throw('validator definition at path name.firstName expects an array of functions. Item a index 0 isn\'t one')
+    })
+
+    it('throws when validator is not an object', function () {
+      const test = () => validate({}, '')
+      expect(test).to.throw('validate second argument must be a validator object')
+    })
+  })
+
   describe('trim', function () {
     it('trim all values before passing to validators', function () {
       let passedValue = null
@@ -26,7 +45,7 @@ describe('validate', function () {
       expect(passedValue).to.equal('test')
     })
 
-    it('doesnt trim value if noTrim is given', function () {
+    it('does not trim value if noTrim is given', function () {
       let passedValue1 = null
       let passedValue2 = null
       const sampleValidator1 = ({value}) => {
@@ -105,6 +124,45 @@ describe('validate', function () {
       })
     })
 
+    it('return errors even when parent object is undefined', function () {
+      const validator = {
+        student: {
+          name: {
+            fr: [required]
+          }
+        }
+      }
+      const entity = {
+      }
+      const ret = validate(entity, validator)
+      expect(ret).to.deep.equal({
+        student: {
+          name: {
+            fr: {error: Errors.required, params: {value: undefined}}
+          }
+        }
+      })
+    })
+
+    it('return no errors when the whole structure is valid', function () {
+      const validator = {
+        student: {
+          name: {
+            fr: [required]
+          }
+        }
+      }
+      const entity = {
+        student: {
+          name: {
+            fr: 'test'
+          }
+        }
+      }
+      const ret = validate(entity, validator)
+      expect(ret).to.deep.equal({})
+    })
+
     it('passes sibling and entity to validation function', function () {
       let retSiblings = null
       let retEntity = null
@@ -152,6 +210,23 @@ describe('validate', function () {
         addresses: {
           home: {streetName: 'test', civicNumber: '456'}
         }
+      }
+      const ret = validate(entity, collectionValidator)
+      expect(ret).to.deep.equal({})
+    })
+
+    it('returns {} given an object without the collection and no valueValidator given', function () {
+      const entity = {
+        name: 'Joe'
+      }
+      const ret = validate(entity, collectionValidator)
+      expect(ret).to.deep.equal({})
+    })
+
+    it('returns {} given an object with an empty collection and no valueValidator given', function () {
+      const entity = {
+        name: 'Joe',
+        addresses: {}
       }
       const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({})
@@ -224,6 +299,26 @@ describe('validate', function () {
       })
     })
 
+    it('returns {} when the value validator returns no error', function () {
+      const sampleValueValidator = () => {
+        return null
+      }
+      const collectionWithValueValidator = {
+        addresses: collection({
+          streetName: [required],
+          civicNumber: [required, isNumber]
+        }, [sampleValueValidator])
+      }
+
+      const entity = {
+        addresses: {
+          home: {streetName: 'test', civicNumber: '456'}
+        }
+      }
+      const ret = validate(entity, collectionWithValueValidator)
+      expect(ret).to.deep.equal({})
+    })
+
     it('applies the value validator when given an array collection', function () {
       const sampleValueValidator = () => {
         return 'sampleError'
@@ -238,7 +333,7 @@ describe('validate', function () {
       const entity = {
         addresses: [
           {streetName: 'test', civicNumber: '456'},
-          {}
+          {streetName: 'test'}
         ]
       }
 
@@ -247,7 +342,6 @@ describe('validate', function () {
         addresses: {
           _error: 'sampleError',
           '1': {
-            streetName: {error: Errors.required, params: {value: undefined}},
             civicNumber: {error: Errors.required, params: {value: undefined}}
           }
         }

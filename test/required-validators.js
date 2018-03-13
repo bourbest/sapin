@@ -169,8 +169,17 @@ describe('requiredIfOtherFieldEquals', function () {
     expect(ret).to.equal(null)
   })
 
-  it('returns Error.required when given no value and other field value matches expected', function () {
+  it('returns Error.required when given no value and other field value matches one of expected', function () {
     const validate = requiredIfOtherFieldEquals('otherField', ['test', 'test2'])
+    const ret = validate({value: '', siblings: {otherField: 'test'}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: ''}
+    })
+  })
+
+  it('returns Error.required when given no value and other field value matches expected', function () {
+    const validate = requiredIfOtherFieldEquals('otherField', 'test')
     const ret = validate({value: '', siblings: {otherField: 'test'}, config})
     expect(ret).to.deep.equal({
       error: Errors.required,

@@ -29,11 +29,14 @@ export const isNegative = ({value, config}) => {
 
 export const numberGteToField = (fieldName, fieldLabel) => {
   return ({value, siblings, config}) => {
-    let otherValue = get(siblings, fieldName, null)
-    if (config.isEmptyValue(value) || config.isEmptyValue(otherValue)) return null
+    if (config.isEmptyValue(value)) return null
     let numberValue = config.getNumber(value)
+    if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
+
+    let otherValue = get(siblings, fieldName, null)
+    if (config.isEmptyValue(otherValue)) return null
     let otherNumberValue = config.getNumber(otherValue)
-    if (isNaN(numberValue) || isNaN(otherNumberValue)) return null
+    if (isNaN(otherNumberValue)) return null
 
     return numberValue >= otherNumberValue ? null : config.formatError(Errors.numberGteToField, {
       value,
@@ -45,11 +48,14 @@ export const numberGteToField = (fieldName, fieldLabel) => {
 
 export const numberLteToField = (fieldName, fieldLabel) => {
   return ({value, siblings, config}) => {
-    let otherValue = get(siblings, fieldName, null)
-    if (config.isEmptyValue(value) || config.isEmptyValue(otherValue)) return null
+    if (config.isEmptyValue(value)) return null
     let numberValue = config.getNumber(value)
+    if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
+
+    let otherValue = get(siblings, fieldName, null)
+    if (config.isEmptyValue(otherValue)) return null
     let otherNumberValue = config.getNumber(otherValue)
-    if (isNaN(numberValue) || isNaN(otherNumberValue)) return null
+    if (isNaN(otherNumberValue)) return null
 
     return numberValue <= otherNumberValue ? null : config.formatError(Errors.numberLteToField, {
       value,
@@ -73,7 +79,7 @@ export const numberWithinRange = (minValue, maxValue) => {
   return ({value, config}) => {
     if (config.isEmptyValue(value)) return null
     const numberValue = config.getNumber(value)
-    if (isNaN(numberValue)) return null
+    if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
     if (numberValue < minValue || numberValue > maxValue) {
       return config.formatError(
         Errors.numberWithinRange,

@@ -252,6 +252,12 @@ describe('numberGteToField', function () {
     expect(ret).to.equal(null)
   })
 
+  it('returns null when otherField is an invalid number', function () {
+    const validate = numberGteToField('otherField')
+    const ret = validate({value: '5', siblings: {otherField: 'sdfs'}, config})
+    expect(ret).to.equal(null)
+  })
+
   it('returns null when given 0 and otherField is 0', function () {
     const validate = numberGteToField('otherField')
     const ret = validate({value: '0', siblings: {otherField: '0'}, config})
@@ -264,7 +270,18 @@ describe('numberGteToField', function () {
     expect(ret).to.equal(null)
   })
 
-  it('returns Errors.numberGteToField with params when a value less than other field', function () {
+  it('returns Errors.isNumber when a value is not a number', function () {
+    const validate = numberGteToField('otherField', 'age')
+    const ret = validate({value: 'yo', siblings: {otherField: 'dfsd'}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.isNumber,
+      params: {
+        value: 'yo'
+      }
+    })
+  })
+
+  it('returns Errors.numberGteToField when a value less than other field', function () {
     const validate = numberGteToField('otherField', 'age')
     const ret = validate({value: '-1', siblings: {otherField: '0'}, config})
     expect(ret).to.deep.equal({
@@ -339,6 +356,23 @@ describe('numberLteToField', function () {
       }
     })
   })
+
+  it('returns Errors.isNumber when a value is not a number', function () {
+    const validate = numberLteToField('otherField', 'age')
+    const ret = validate({value: 'yo', siblings: {otherField: '0'}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.isNumber,
+      params: {
+        value: 'yo'
+      }
+    })
+  })
+
+  it('returns no error when other field as an invalid number', function () {
+    const validate = numberLteToField('otherField', 'age')
+    const ret = validate({value: '1', siblings: {otherField: 'yo'}, config})
+    expect(ret).to.equal(null)
+  })
 })
 
 describe('numberWithinRange', function () {
@@ -381,6 +415,17 @@ describe('numberWithinRange', function () {
         value: '5.1',
         minValue: 0,
         maxValue: 5
+      }
+    })
+  })
+
+  it('returns Errors.isNumber when given invalid number', function () {
+    const validate = numberWithinRange(0, 5)
+    const ret = validate({value: 'yo', config})
+    expect(ret).to.deep.equal({
+      error: Errors.isNumber,
+      params: {
+        value: 'yo'
       }
     })
   })
