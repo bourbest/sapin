@@ -1,5 +1,5 @@
 import {expect} from 'chai'
-import {Errors} from "../src/common";
+import {Errors, defaultConfig as config} from '../src/common'
 import {
   required,
   requiredIfOtherFieldIsTrue,
@@ -9,22 +9,31 @@ import {
 
 describe('required', function () {
   it('returns Errors.required when given null value', function () {
-    const ret = required(null)
-    expect(ret).to.equal(Errors.required)
+    const ret = required({value: null, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: null}
+    })
   })
 
   it('returns Errors.required when given undefined', function () {
-    const ret = required(undefined)
-    expect(ret).to.equal(Errors.required)
+    const ret = required({value: undefined, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: undefined}
+    })
   })
 
   it('returns Errors.required when given \'\'', function () {
-  const ret = required('')
-    expect(ret).to.equal(Errors.required)
+    const ret = required({value: '', config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: ''}
+    })
   })
 
   it('returns null when given a value', function () {
-    const ret = required('yo')
+    const ret = required({value: 'yo', config})
     expect(ret).to.equal(null)
   })
 })
@@ -32,37 +41,46 @@ describe('required', function () {
 describe('requiredIfOtherFieldIsTrue', function () {
   it('returns Errors.required when other field value is true and null value given', function () {
     const validate = requiredIfOtherFieldIsTrue('otherField')
-    const ret = validate(null, {otherField: true})
-    expect(ret).to.equal(Errors.required)
+    const ret = validate({value: null, siblings: {otherField: true}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: null}
+    })
   })
 
   it('returns Errors.required when other field value is true and undefined value given', function () {
     const validate = requiredIfOtherFieldIsTrue('otherField')
-    const ret = validate(undefined, {otherField: true})
-    expect(ret).to.equal(Errors.required)
+    const ret = validate({value: undefined, siblings: {otherField: true}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: undefined}
+    })
   })
 
   it('returns Errors.required when other field value is true and \'\' value given', function () {
     const validate = requiredIfOtherFieldIsTrue('otherField')
-    const ret = validate('', {otherField: true})
-    expect(ret).to.equal(Errors.required)
+    const ret = validate({value: '', siblings: {otherField: true}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: ''}
+    })
   })
 
   it('returns null when other field value is true and a valid string given', function () {
     const validate = requiredIfOtherFieldIsTrue('otherField')
-    const ret = validate('yo', {otherField: false})
+    const ret = validate({value: 'yo', siblings: {otherField: false}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when other field value is false even when null value given', function () {
     const validate = requiredIfOtherFieldIsTrue('otherField')
-    const ret = validate('', {otherField: false})
+    const ret = validate({value: '', siblings: {otherField: false}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when other field value is undefined even when null value given', function () {
     const validate = requiredIfOtherFieldIsTrue('otherField')
-    const ret = validate(null, {})
+    const ret = validate({value: null, siblings: {}, config})
     expect(ret).to.equal(null)
   })
 })
@@ -70,83 +88,93 @@ describe('requiredIfOtherFieldIsTrue', function () {
 describe('requiredIfOtherFieldIsFalse', function () {
   it('returns Errors.required when other field value is false and null value given', function () {
     const validate = requiredIfOtherFieldIsFalse('otherField')
-    const ret = validate(null, {otherField: false})
-    expect(ret).to.equal(Errors.required)
+    const ret = validate({value: null, siblings: {otherField: false}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: null}
+    })
   })
 
   it('returns Errors.required when other field value is false and undefined value given', function () {
     const validate = requiredIfOtherFieldIsFalse('otherField')
-    const ret = validate(undefined, {otherField: false})
-    expect(ret).to.equal(Errors.required)
+    const ret = validate({value: undefined, siblings: {otherField: false}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: undefined}
+    })
   })
 
   it('returns Errors.required when other field value is false and \'\' value given', function () {
     const validate = requiredIfOtherFieldIsFalse('otherField')
-    const ret = validate('', {otherField: false})
-    expect(ret).to.equal(Errors.required)
+    const ret = validate({value: '', siblings: {otherField: false}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: ''}
+    })
   })
 
   it('returns null when other field value is false and a valid string given', function () {
     const validate = requiredIfOtherFieldIsFalse('otherField')
-    const ret = validate('yo', {otherField: true})
+    const ret = validate({value: 'yo', siblings: {otherField: true}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when other field value is true even when null value given', function () {
     const validate = requiredIfOtherFieldIsFalse('otherField')
-    const ret = validate('', {otherField: true})
+    const ret = validate({value: '', siblings: {otherField: true}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when other field value is undefined even when null value given', function () {
     const validate = requiredIfOtherFieldIsFalse('otherField')
-    const ret = validate(null, {})
+    const ret = validate({value: null, siblings: {}, config})
     expect(ret).to.equal(null)
   })
-
-  //requiredIfOtherFieldEquals
 })
 
 describe('requiredIfOtherFieldEquals', function () {
   it('returns null when other field value is undefined', function () {
     const validate = requiredIfOtherFieldEquals('otherField', 'test')
-    const ret = validate(null, {})
+    const ret = validate({value: null, siblings: {}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when other field value is null', function () {
     const validate = requiredIfOtherFieldEquals('otherField', 'test')
-    const ret = validate(null, {otherField: null})
+    const ret = validate({value: null, siblings: {otherField: null}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when other field value is empty string', function () {
     const validate = requiredIfOtherFieldEquals('otherField', 'test')
-    const ret = validate(null, {otherField: ''})
+    const ret = validate({value: null, siblings: {otherField: ''}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when other field value is not a target value', function () {
     const validate = requiredIfOtherFieldEquals('otherField', 'test')
-    const ret = validate(null, {otherField: 'sdfsd'})
+    const ret = validate({value: null, siblings: {otherField: 'sdfsd'}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when other field value is not one of the target values', function () {
     const validate = requiredIfOtherFieldEquals('otherField', ['test', 'test2'])
-    const ret = validate(null, {otherField: 'sdfsd'})
+    const ret = validate({value: null, siblings: {otherField: 'sdfsd'}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given a value', function () {
     const validate = requiredIfOtherFieldEquals('otherField', ['test', 'test2'])
-    const ret = validate('yo', {otherField: 'test'})
+    const ret = validate({value: 'yo', siblings: {otherField: 'test'}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns Error.required when given no value and other field value matches expected', function () {
     const validate = requiredIfOtherFieldEquals('otherField', ['test', 'test2'])
-    const ret = validate('', {otherField: 'test'})
-    expect(ret).to.equal(Errors.required)
+    const ret = validate({value: '', siblings: {otherField: 'test'}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.required,
+      params: {value: ''}
+    })
   })
 })

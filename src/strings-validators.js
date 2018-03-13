@@ -1,29 +1,26 @@
 import {isNil} from 'lodash'
-import {Errors, isEmptyValue, err} from './common'
+import {Errors} from './common'
 
-const EMAIL_REGEX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/
-export const isEmail = (value) => {
-  if (isEmptyValue(value)) return null
-  return !EMAIL_REGEX.test(value) ? err(Errors.isEmail) : null
+const EMAIL_REGEX = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/
+export const isEmail = ({value, config}) => {
+  if (config.isEmptyValue(value)) return null
+  return !EMAIL_REGEX.test(value) ? config.formatError(Errors.isEmail, {value}, config) : null
 }
 
 export const minLength = (minLength) => {
-  return (value) => {
+  return ({value, config}) => {
     if (isNil(value) || value.length < minLength) {
-      return err(Errors.minLength, {minLength})
+      return config.formatError(Errors.minLength, {value, minLength}, config)
     }
     return null
   }
 }
 
 export const maxLength = (maxLength) => {
-  return (value) => {
+  return ({value, config}) => {
     if (!isNil(value) && value.length > maxLength) {
-      return err(Errors.maxLength, {maxLength})
+      return config.formatError(Errors.maxLength, {value, maxLength}, config)
     }
     return null
   }
 }
-
-export const noTrim = () => true
-

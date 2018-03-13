@@ -1,72 +1,61 @@
-import {isNil, get, isString} from 'lodash'
-import {
-  err,
-  Errors,
-  isEmptyValue
-} from './common'
+import {isNil, get} from 'lodash'
+import {Errors} from './common'
 
-// caller should not pass undefined or null
-const getTransformedNumber = (value) => {
-  let transformedValue = value
-  if (isString(transformedValue)) {
-    transformedValue = transformedValue.replace(',', '.')
-  }
-  return Number(transformedValue)
+export const isNumber = ({value, config}) => {
+  if (config.isEmptyValue(value)) return null
+  const valueToTest = config.getNumber(value)
+  return isNaN(valueToTest) ? config.formatError(Errors.isNumber, {value}, config) : null
 }
 
-export const isNumber = (value) => {
-  if (isEmptyValue(value)) return null
-  const valueToTest = getTransformedNumber(value)
-  return isNaN(valueToTest) ? err(Errors.isNumber) : null
+export const isInteger = ({value, config}) => {
+  if (config.isEmptyValue(value)) return null
+  const numberValue = config.getNumber(value)
+  return (!Number.isInteger(numberValue)) ? config.formatError(Errors.isInteger, {value}, config) : null
 }
 
-export const isInteger = (value) => {
-  if (isEmptyValue(value)) return null
-  const numberValue = getTransformedNumber(value)
-  return (!Number.isInteger(numberValue)) ? err(Errors.isInteger) : null
+export const isPositive = ({value, config}) => {
+  if (config.isEmptyValue(value)) return null
+  const numberValue = config.getNumber(value)
+  if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
+  return numberValue >= 0 ? null : config.formatError(Errors.isPositive, {value}, config)
 }
 
-export const isPositive = (value) => {
-  if (isEmptyValue(value)) return null
-  const numberValue = getTransformedNumber(value)
-  if (isNaN(numberValue)) return err(Errors.isNumber)
-  return numberValue >= 0 ? null : err(Errors.isPositive)
-}
-
-export const isNegative = (value) => {
-  if (isEmptyValue(value)) return null
-  const numberValue = getTransformedNumber(value)
-  if (isNaN(numberValue)) return err(Errors.isNumber)
-  return numberValue < 0 ? null : err(Errors.isNegative)
+export const isNegative = ({value, config}) => {
+  if (config.isEmptyValue(value)) return null
+  const numberValue = config.getNumber(value)
+  if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
+  return numberValue < 0 ? null : config.formatError(Errors.isNegative, {value}, config)
 }
 
 export const numberGteToField = (fieldName, fieldLabel) => {
-  return (value, entity) => {
-    let otherValue = get(entity, fieldName, null)
-    if (isEmptyValue(value) || isEmptyValue(otherValue)) return null
-    let numberValue = getTransformedNumber(value)
-    let otherNumberValue = getTransformedNumber(otherValue)
+  return ({value, siblings, config}) => {
+    let otherValue = get(siblings, fieldName, null)
+    if (config.isEmptyValue(value) || config.isEmptyValue(otherValue)) return null
+    let numberValue = config.getNumber(value)
+    let otherNumberValue = config.getNumber(otherValue)
     if (isNaN(numberValue) || isNaN(otherNumberValue)) return null
 
-    return numberValue >= otherNumberValue ? null : err(Errors.numberGteToField, {
-      otherFieldName: fieldLabel,
+    return numberValue >= otherNumberValue ? null : config.formatError(Errors.numberGteToField, {
+      value,
+      otherFieldLabel: fieldLabel,
       otherFieldValue: otherNumberValue
-    })
+    }, config)
   }
 }
 
 export const numberLteToField = (fieldName, fieldLabel) => {
-  return (value, entity) => {
-    let otherValue = get(entity, fieldName, null)
-    if (isEmptyValue(value) || isEmptyValue(otherValue)) return null
-    let numberValue = getTransformedNumber(value)
-    let otherNumberValue = getTransformedNumber(otherValue)
+  return ({value, siblings, config}) => {
+    let otherValue = get(siblings, fieldName, null)
+    if (config.isEmptyValue(value) || config.isEmptyValue(otherValue)) return null
+    let numberValue = config.getNumber(value)
+    let otherNumberValue = config.getNumber(otherValue)
     if (isNaN(numberValue) || isNaN(otherNumberValue)) return null
 
-    return numberValue <= otherNumberValue ? null : err(Errors.numberLteToField, {
-      otherFieldName: fieldLabel,
+    return numberValue <= otherNumberValue ? null : config.formatError(Errors.numberLteToField, {
+      value,
+      otherFieldLabel: fieldLabel,
       otherFieldValue: otherNumberValue
-    })
+    }, config)
   }
 }
 
@@ -81,10 +70,17 @@ export const numberWithinRange = (minValue, maxValue) => {
     }
   }
 
-  return (value) => {
-    if (isEmptyValue(value)) return null
-    const numberValue = getTransformedNumber(value)
+  return ({value, config}) => {
+    if (config.isEmptyValue(value)) return null
+    const numberValue = config.getNumber(value)
     if (isNaN(numberValue)) return null
-    return (numberValue >= minValue && numberValue <= maxValue) ? null : err(Errors.numberWithinRange, {minValue, maxValue})
+    if (numberValue < minValue || numberValue > maxValue) {
+      return config.formatError(
+        Errors.numberWithinRange,
+        {value, minValue, maxValue},
+        config
+      )
+    }
+    return null
   }
 }

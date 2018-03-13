@@ -1,8 +1,8 @@
 import {expect} from 'chai'
 import {Errors} from '../src/common'
 import {
-  isNumber, required, validate, collection, noTrim
-} from '../src';
+  isNumber, required, validate, collection, noTrim, createConfig
+} from '../src'
 
 describe('validate', function () {
   const simpleValidator = {
@@ -13,7 +13,7 @@ describe('validate', function () {
   describe('trim', function () {
     it('trim all values before passing to validators', function () {
       let passedValue = null
-      const sampleValidator = (value) => {
+      const sampleValidator = ({value}) => {
         passedValue = value
       }
       const entity = {
@@ -29,10 +29,10 @@ describe('validate', function () {
     it('doesnt trim value if noTrim is given', function () {
       let passedValue1 = null
       let passedValue2 = null
-      const sampleValidator1 = (value) => {
+      const sampleValidator1 = ({value}) => {
         passedValue1 = value
       }
-      const sampleValidator2 = (value) => {
+      const sampleValidator2 = ({value}) => {
         passedValue2 = value
       }
       const entity = {
@@ -46,6 +46,24 @@ describe('validate', function () {
       validate(entity, validator)
       expect(passedValue1).to.equal('test')
       expect(passedValue2).to.equal('  test  ')
+    })
+
+    it('does not trim if config says so', function () {
+      let passedValue = null
+      const sampleValidator = ({value}) => {
+        passedValue = value
+      }
+
+      const entity = {
+        name: '  test  '
+      }
+      const validator = {
+        name: [sampleValidator]
+      }
+
+      const config = createConfig({useTrim: false})
+      validate(entity, validator, config)
+      expect(passedValue).to.equal('  test  ')
     })
   })
 
@@ -66,8 +84,8 @@ describe('validate', function () {
       }
       const ret = validate(entity, simpleValidator)
       expect(ret).to.deep.equal({
-        name: Errors.required,
-        age: Errors.isNumber
+        name: {error: Errors.required, params: {value: ''}},
+        age: {error: Errors.isNumber, params: {value: 'test'}}
       })
     })
 
@@ -77,12 +95,12 @@ describe('validate', function () {
         'description.fr': [required]
       }
       const entity = {
-        name: {fr: 'test'},
+        name: {fr: 'test'}
       }
       const ret = validate(entity, validator)
       expect(ret).to.deep.equal({
         description: {
-          fr: Errors.required
+          fr: {error: Errors.required, params: {value: undefined}}
         }
       })
     })
@@ -91,7 +109,7 @@ describe('validate', function () {
       let retSiblings = null
       let retEntity = null
 
-      const sampleValidator = (value, siblings, entity) => {
+      const sampleValidator = ({siblings, entity}) => {
         retSiblings = siblings
         retEntity = entity
       }
@@ -151,8 +169,8 @@ describe('validate', function () {
       expect(ret).to.deep.equal({
         addresses: {
           '1': {
-            streetName: Errors.required,
-            civicNumber: Errors.required
+            streetName: {error: Errors.required, params: {value: undefined}},
+            civicNumber: {error: Errors.required, params: {value: undefined}}
           }
         }
       })
@@ -170,15 +188,15 @@ describe('validate', function () {
       expect(ret).to.deep.equal({
         addresses: {
           work: {
-            streetName: Errors.required,
-            civicNumber: Errors.required
+            streetName: {error: Errors.required, params: {value: undefined}},
+            civicNumber: {error: Errors.required, params: {value: undefined}}
           }
         }
       })
     })
 
     it('applies the value validator when given object collection', function () {
-      const sampleValueValidator = (value) => {
+      const sampleValueValidator = () => {
         return 'sampleError'
       }
       const collectionWithValueValidator = {
@@ -199,15 +217,15 @@ describe('validate', function () {
         addresses: {
           _error: 'sampleError',
           work: {
-            streetName: Errors.required,
-            civicNumber: Errors.required
+            streetName: {error: Errors.required, params: {value: undefined}},
+            civicNumber: {error: Errors.required, params: {value: undefined}}
           }
         }
       })
     })
 
     it('applies the value validator when given an array collection', function () {
-      const sampleValueValidator = (value) => {
+      const sampleValueValidator = () => {
         return 'sampleError'
       }
       const collectionWithValueValidator = {
@@ -219,8 +237,8 @@ describe('validate', function () {
 
       const entity = {
         addresses: [
-         {streetName: 'test', civicNumber: '456'},
-         {}
+          {streetName: 'test', civicNumber: '456'},
+          {}
         ]
       }
 
@@ -229,8 +247,8 @@ describe('validate', function () {
         addresses: {
           _error: 'sampleError',
           '1': {
-            streetName: Errors.required,
-            civicNumber: Errors.required
+            streetName: {error: Errors.required, params: {value: undefined}},
+            civicNumber: {error: Errors.required, params: {value: undefined}}
           }
         }
       })
@@ -252,19 +270,19 @@ describe('validate', function () {
         level1: [
           {name: 'test', level2: [{age: '50'}]},
           {name: '', level2: [{age: '50'}]},
-          {name: 'test', level2: [{age: ''}]},
+          {name: 'test', level2: [{age: ''}]}
         ]
       }
       const ret = validate(entity, complexCollectionValidator)
       expect(ret).to.deep.equal({
         level1: {
           '1': {
-            name: Errors.required,
+            name: {error: Errors.required, params: {value: ''}}
           },
           '2': {
             level2: {
               '0': {
-                age: Errors.required
+                age: {error: Errors.required, params: {value: ''}}
               }
             }
           }
@@ -276,7 +294,7 @@ describe('validate', function () {
       let retSiblings = []
       let retEntity = null
 
-      const sampleValidator = (value, siblings, entity) => {
+      const sampleValidator = ({siblings, entity}) => {
         retSiblings.push(siblings)
         retEntity = entity
       }
@@ -338,13 +356,13 @@ describe('validate', function () {
     it('returns error with a property describing the error a the correct index when given an array collection', function () {
       const entity = {
         name: 'Joe',
-        scores: ['50', null, 'sdfa28']
+        scores: ['50', null, 'yo']
       }
       const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({
         scores: {
-          '1': Errors.required,
-          '2': Errors.isNumber
+          '1': {error: Errors.required, params: {value: null}},
+          '2': {error: Errors.isNumber, params: {value: 'yo'}}
         }
       })
     })
@@ -355,20 +373,20 @@ describe('validate', function () {
         scores: {
           math: '50',
           science: null,
-          history: 'sdfa28'
+          history: 'yo'
         }
       }
       const ret = validate(entity, collectionValidator)
       expect(ret).to.deep.equal({
         scores: {
-          science: Errors.required,
-          history: Errors.isNumber
+          science: {error: Errors.required, params: {value: null}},
+          history: {error: Errors.isNumber, params: {value: 'yo'}}
         }
       })
     })
 
     it('applies the value validator when given an object collection', function () {
-      const sampleValueValidator = (value) => {
+      const sampleValueValidator = () => {
         return 'sampleError'
       }
       const collectionWithValueValidator = {
@@ -379,7 +397,7 @@ describe('validate', function () {
         scores: {
           math: '50',
           science: null,
-          history: 'sdfa28'
+          history: 'yo'
         }
       }
 
@@ -387,14 +405,14 @@ describe('validate', function () {
       expect(ret).to.deep.equal({
         scores: {
           _error: 'sampleError',
-          science: Errors.required,
-          history: Errors.isNumber
+          science: {error: Errors.required, params: {value: null}},
+          history: {error: Errors.isNumber, params: {value: 'yo'}}
         }
       })
     })
 
     it('applies the value validator when given an array collection', function () {
-      const sampleValueValidator = (value) => {
+      const sampleValueValidator = () => {
         return 'sampleError'
       }
       const collectionWithValueValidator = {
@@ -402,15 +420,15 @@ describe('validate', function () {
       }
 
       const entity = {
-        scores: ['50', null, 'dfasd']
+        scores: ['50', null, 'yo']
       }
 
       const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         scores: {
           _error: 'sampleError',
-          '1': Errors.required,
-          '2': Errors.isNumber
+          '1': {error: Errors.required, params: {value: null}},
+          '2': {error: Errors.isNumber, params: {value: 'yo'}}
         }
       })
     })
@@ -419,7 +437,7 @@ describe('validate', function () {
       let retSiblings = null
       let retEntity = null
 
-      const sampleValidator = (value, siblings, entity) => {
+      const sampleValidator = ({siblings, entity}) => {
         retSiblings = siblings
         retEntity = entity
       }
@@ -442,7 +460,7 @@ describe('validate', function () {
       let retSiblings = null
       let retEntity = null
 
-      const sampleValidator = (value, siblings, entity) => {
+      const sampleValidator = ({siblings, entity}) => {
         retSiblings = siblings
         retEntity = entity
       }

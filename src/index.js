@@ -5,7 +5,7 @@ export {
   isNegative,
   numberGteToField,
   numberLteToField,
-  numberWithinRange,
+  numberWithinRange
 } from './numbers-validators'
 
 export {
@@ -16,15 +16,14 @@ export {
 } from './required-validators'
 
 export {
-  setErrorMessages,
-  configureValidator
+  createConfig,
+  noTrim
 } from './common'
 
 export {
   minLength,
   maxLength,
-  isEmail,
-  noTrim
+  isEmail
 } from './strings-validators'
 
 export {collection} from './collections'

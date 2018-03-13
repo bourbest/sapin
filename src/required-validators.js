@@ -1,30 +1,26 @@
 import {get, isArray} from 'lodash'
-import {
-  Errors,
-  isEmptyValue,
-  err
-} from './common'
+import {Errors} from './common'
 
 // required validators
-export const required = (value) => {
-  return isEmptyValue(value) ? err(Errors.required) : null
+export const required = ({value, config}) => {
+  return config.isEmptyValue(value) ? config.formatError(Errors.required, {value}, config) : null
 }
 
 export const requiredIfOtherFieldIsTrue = (otherFieldName) => {
-  return (value, entity) => {
-    const otherFieldValue = get(entity, otherFieldName, false)
+  return (params) => {
+    const otherFieldValue = get(params.siblings, otherFieldName, false)
     if (otherFieldValue) {
-      return required(value, entity)
+      return required(params)
     }
     return null
   }
 }
 
 export const requiredIfOtherFieldIsFalse = (otherFieldName) => {
-  return (value, entity) => {
-    const otherFieldValue = get(entity, otherFieldName, true)
+  return (params) => {
+    const otherFieldValue = get(params.siblings, otherFieldName, true)
     if (!otherFieldValue) {
-      return required(value, entity)
+      return required(params)
     }
     return null
   }
@@ -32,14 +28,14 @@ export const requiredIfOtherFieldIsFalse = (otherFieldName) => {
 
 // expectedFieldValue can be a single value or an array of values
 export const requiredIfOtherFieldEquals = (otherFieldName, expectedFieldValue) => {
-  return (value, entity) => {
-    const otherFieldValue = get(entity, otherFieldName, false)
+  return (params) => {
+    const otherFieldValue = get(params.siblings, otherFieldName, false)
     if (isArray(expectedFieldValue)) {
       if (expectedFieldValue.indexOf(otherFieldValue) > -1) {
-        return required(value, entity)
+        return required(params)
       }
     } else if (otherFieldValue === expectedFieldValue) {
-      return required(value, entity)
+      return required(params)
     }
     return null
   }

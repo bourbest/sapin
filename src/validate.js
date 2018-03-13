@@ -1,7 +1,6 @@
-import {get, set, isObject, setWith, forOwn, forEach, isNil, isArray, isEmpty, isString, keys, trim} from 'lodash'
+import {set, isObject, setWith, forEach, isArray, isEmpty, isFunction} from 'lodash'
 import {ValidatorTypes} from './collections'
-import {config} from './common'
-import {noTrim} from './strings-validators'
+import {defaultConfig} from './common'
 
 const internalProps = new Set(['__type', '__validator', '__valueValidator'])
 const ensureValidatorIsValid = (validator, propName) => {
@@ -23,33 +22,23 @@ const ensureValidatorIsValid = (validator, propName) => {
   }
 }
 
-const getValue = (entity, path, validators) => {
-  let value = get(entity, path, null)
-  if (typeof value === 'string' && config.useTrim) {
-    if (!isArray(validators) || validators.indexOf(noTrim) === -1) {
-      value = trim(value)
-    }
-  }
-  return value
-}
-
-export const validateField = (value, validations, siblings, entity) => {
+export const validateField = (value, validations, siblings, entity, config) => {
   let err = null
 
   for (let i = 0; !err && i < validations.length; i++) {
     const validation = validations[i]
-    err = validation(value, siblings, entity)
+    err = validation({value, siblings, entity, config})
   }
 
   return err
 }
 
-const validateCollectionOfObjects = (objectCollection, validator, siblings, entity) => {
+const validateCollectionOfObjects = (objectCollection, validator, siblings, entity, config) => {
   const collectionErrors = {}
 
   if (objectCollection) {
     forEach(objectCollection, (value, idx) => {
-      const entityErrors = applyValidator(value, validator, value, entity)
+      const entityErrors = applyValidator(value, validator, value, entity, config)
       if (!isEmpty(entityErrors)) {
         collectionErrors[idx] = entityErrors
       }
@@ -58,7 +47,7 @@ const validateCollectionOfObjects = (objectCollection, validator, siblings, enti
   return collectionErrors
 }
 
-const applyValidator = (value, validator, siblings, entity) => {
+const applyValidator = (value, validator, siblings, entity, config) => {
   const entityErrors = {}
 
   if (process.env.NODE_ENV !== 'production') {
@@ -72,23 +61,23 @@ const applyValidator = (value, validator, siblings, entity) => {
 
   for (let fieldName in validator) {
     const fieldValidations = validator[fieldName]
-    const fieldValue = getValue(value, fieldName, fieldValidations)
+    const fieldValue = config.getValue(value, fieldName, fieldValidations, config)
 
     if (isArray(fieldValidations)) {
-      const fieldError = validateField(fieldValue, fieldValidations, siblings, entity)
+      const fieldError = validateField(fieldValue, fieldValidations, siblings, entity, config)
       if (fieldError) {
         set(entityErrors, fieldName, fieldError)
       }
     } else {
       if (fieldValidations.__valueValidator) {
-        const valueError = validateField(fieldValue, fieldValidations.__valueValidator, siblings, entity)
+        const valueError = validateField(fieldValue, fieldValidations.__valueValidator, siblings, entity, config)
         if (valueError) {
           set(entityErrors, `${fieldName}._error`, valueError)
         }
       }
 
       if (fieldValidations.__type === ValidatorTypes.collectionOfObjects) {
-        const fieldError = validateCollectionOfObjects(fieldValue, fieldValidations.__validator, siblings, entity)
+        const fieldError = validateCollectionOfObjects(fieldValue, fieldValidations.__validator, siblings, entity, config)
         if (fieldError) {
           for (let propName in fieldError) {
             const propError = fieldError[propName]
@@ -99,9 +88,9 @@ const applyValidator = (value, validator, siblings, entity) => {
         }
       } else if (fieldValidations.__type === ValidatorTypes.collectionOfValues) {
         for (let key in fieldValue) {
-          const valueToValidate = getValue(fieldValue, key, fieldValidations.__validator)
+          const valueToValidate = config.getValue(fieldValue, key, fieldValidations.__validator, config)
 
-          const fieldError = validateField(valueToValidate, fieldValidations.__validator, siblings, entity)
+          const fieldError = validateField(valueToValidate, fieldValidations.__validator, siblings, entity, config)
           if (!isEmpty(fieldError)) {
             setWith(entityErrors, `${fieldName}.${key}`, fieldError, Object)
           }
@@ -113,7 +102,8 @@ const applyValidator = (value, validator, siblings, entity) => {
   return entityErrors
 }
 
-export const validate = (values, validator) => {
+export const validate = (values, validator, config = null) => {
+  config = config || defaultConfig
   if (process.env.NODE_ENV !== 'production') {
     if (!isObject(validator)) {
       throw new Error('applyValidator second argument must be a validator object')
@@ -122,5 +112,5 @@ export const validate = (values, validator) => {
       ensureValidatorIsValid(validator[prop], prop)
     }
   }
-  return applyValidator(values, validator, values, values)
+  return applyValidator(values, validator, values, values, config)
 }

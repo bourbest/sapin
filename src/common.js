@@ -1,3 +1,5 @@
+import {get, trim, isArray, isString, keys, filter} from 'lodash'
+
 export const Errors = {
   required: 'required',
   isNumber: 'invalidNumber',
@@ -12,35 +14,50 @@ export const Errors = {
   isEmail: 'invalidEmail'
 }
 
-const internalFormatError = (error, errorParams, formatParams) => {
-  if (errorParams) {
-    return {error, params: errorParams}
-  }
-  return error
+export const noTrim = () => true
+
+const internalFormatError = (error, errorParams /*, config */) => {
+  return {error, params: errorParams}
 }
 
-export const config = {
-  formatError: internalFormatError,
-  formatErrorParams: null,
-  useTrim: true
-}
-
-export const isEmptyValue = (value) => value === undefined || value === null || value === ''
-
-export const configureValidators = (newConfig) => {
-  if (process.env.NODE_ENV !== 'production') {
-    const KNOWN_KEYS = new Set(['formatError', 'formatErrorParams', 'useTrim'])
-    for (let prop in newConfig) {
-      if (!KNOWN_KEYS.has(prop)) {
-        throw new Error(`configureValidators received an unexpected key '${prop}'`)
-      }
+const getValue = (entity, path, validators, config) => {
+  let value = get(entity, path, undefined)
+  if (typeof value === 'string' && config.useTrim) {
+    if (!isArray(validators) || validators.indexOf(noTrim) === -1) {
+      value = trim(value)
     }
   }
-  for (let prop in newConfig) {
-    config[prop] = newConfig[prop]
-  }
+  return value
 }
 
-export const err = (error, params) => {
-  return config.formatError(error, params, config.formatErrorParams)
+// caller should not pass undefined or null
+const getNumber = (value) => {
+  let transformedValue = value
+  if (isString(transformedValue)) {
+    transformedValue = transformedValue.replace(',', '.')
+  }
+  return Number(transformedValue)
+}
+
+const isEmptyValue = (value) => value === undefined || value === null || value === ''
+
+export const defaultConfig = {
+  formatError: internalFormatError,
+  getValue,
+  getNumber,
+  isEmptyValue,
+  useTrim: true,
+  params: {}
+}
+
+export const createConfig = (newConfig) => {
+  const config = Object.assign({}, defaultConfig, newConfig)
+  if (process.env.NODE_ENV !== 'production') {
+    const KNOWN_KEYS = new Set(keys(defaultConfig))
+    const unexpectedKeys = filter(keys(newConfig), key => !KNOWN_KEYS.has(key))
+    if (unexpectedKeys.length) {
+      throw new Error(`createConfig received an unexpected key '${unexpectedKeys.join(', ')}'`)
+    }
+  }
+  return config
 }
