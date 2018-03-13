@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/bourbest/sapin.svg?branch=master)](https://travis-ci.org/bourbest/sapin)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
+[![Coverage Status](https://coveralls.io/repos/github/bourbest/sapin/badge.svg?branch=master)](https://coveralls.io/github/bourbest/sapin?branch=master)
 
 # sapin
 A library that allows to create an object validation function using a declarative style. The function will store each error
