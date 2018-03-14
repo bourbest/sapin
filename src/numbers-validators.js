@@ -14,16 +14,19 @@ export const isInteger = ({value, config}) => {
 }
 
 const compareSign = (value, isPositive, config) => {
-  if (config.isEmptyValue(value)) return null
-  const numberValue = config.getNumber(value)
-  if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
+  let err = null
 
-  if (isPositive && numberValue < 0) {
-    return config.formatError(Errors.isPositive, {value}, config)
-  } else if (!isPositive && numberValue >= 0) {
-    return config.formatError(Errors.isNegative, {value}, config)
+  if (!config.isEmptyValue(value)) {
+    const numberValue = config.getNumber(value)
+    if (isNaN(numberValue)) {
+      err = config.formatError(Errors.isNumber, {value}, config)
+    } else if (isPositive && numberValue < 0) {
+      err = config.formatError(Errors.isPositive, {value}, config)
+    } else if (!isPositive && numberValue >= 0) {
+      err = config.formatError(Errors.isNegative, {value}, config)
+    }
   }
-  return null
+  return err
 }
 
 export const isPositive = ({value, config}) => {
