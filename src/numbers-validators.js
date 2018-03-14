@@ -1,4 +1,4 @@
-import {isNil, get} from 'lodash'
+import {isNil, get, gte, lte} from 'lodash'
 import {Errors} from './common'
 
 export const isNumber = ({value, config}) => {
@@ -13,55 +13,68 @@ export const isInteger = ({value, config}) => {
   return (!Number.isInteger(numberValue)) ? config.formatError(Errors.isInteger, {value}, config) : null
 }
 
-export const isPositive = ({value, config}) => {
+const compareSign = (value, isPositive, config) => {
   if (config.isEmptyValue(value)) return null
   const numberValue = config.getNumber(value)
   if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
-  return numberValue >= 0 ? null : config.formatError(Errors.isPositive, {value}, config)
+
+  if (isPositive && numberValue < 0) {
+    return config.formatError(Errors.isPositive, {value}, config)
+  } else if (!isPositive && numberValue >= 0) {
+    return config.formatError(Errors.isNegative, {value}, config)
+  }
+  return null
+}
+
+export const isPositive = ({value, config}) => {
+  return compareSign(value, true, config)
 }
 
 export const isNegative = ({value, config}) => {
+  return compareSign(value, false, config)
+}
+
+const compareWithOtherField = (value, otherFieldName, otherFieldLabel, siblings, config, op) => {
   if (config.isEmptyValue(value)) return null
-  const numberValue = config.getNumber(value)
-  if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
-  return numberValue < 0 ? null : config.formatError(Errors.isNegative, {value}, config)
+  let numberValue = config.getNumber(value)
+  if (isNaN(numberValue)) return {error: Errors.isNumber, params: {value}}
+
+  let otherFieldValue = get(siblings, otherFieldName, null)
+  if (config.isEmptyValue(otherFieldValue)) return null
+
+  let otherNumberValue = config.getNumber(otherFieldValue)
+  if (isNaN(otherNumberValue)) return null
+
+  return op(numberValue, otherNumberValue) ? null : {
+    params: {
+      value,
+      otherFieldValue: otherNumberValue,
+      otherFieldLabel
+    }
+  }
 }
 
 export const numberGteToField = (fieldName, fieldLabel) => {
   return ({value, siblings, config}) => {
-    if (config.isEmptyValue(value)) return null
-    let numberValue = config.getNumber(value)
-    if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
+    const error = compareWithOtherField(value, fieldName, fieldLabel, siblings, config, gte)
+    if (error) {
+      if (!error.error) error.error = Errors.numberGteToField
+      return config.formatError(error.error, error.params, config)
+    }
 
-    let otherValue = get(siblings, fieldName, null)
-    if (config.isEmptyValue(otherValue)) return null
-    let otherNumberValue = config.getNumber(otherValue)
-    if (isNaN(otherNumberValue)) return null
-
-    return numberValue >= otherNumberValue ? null : config.formatError(Errors.numberGteToField, {
-      value,
-      otherFieldLabel: fieldLabel,
-      otherFieldValue: otherNumberValue
-    }, config)
+    return null
   }
 }
 
 export const numberLteToField = (fieldName, fieldLabel) => {
   return ({value, siblings, config}) => {
-    if (config.isEmptyValue(value)) return null
-    let numberValue = config.getNumber(value)
-    if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
+    const error = compareWithOtherField(value, fieldName, fieldLabel, siblings, config, lte)
+    if (error) {
+      if (!error.error) error.error = Errors.numberLteToField
+      return config.formatError(error.error, error.params, config)
+    }
 
-    let otherValue = get(siblings, fieldName, null)
-    if (config.isEmptyValue(otherValue)) return null
-    let otherNumberValue = config.getNumber(otherValue)
-    if (isNaN(otherNumberValue)) return null
-
-    return numberValue <= otherNumberValue ? null : config.formatError(Errors.numberLteToField, {
-      value,
-      otherFieldLabel: fieldLabel,
-      otherFieldValue: otherNumberValue
-    }, config)
+    return null
   }
 }
 

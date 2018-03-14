@@ -16,7 +16,7 @@ validate forms connected with [redux-form](https://redux-form.com), it can valid
 # Example
 ```js
 // Load validators functions
-import {applyValidator, required, collection, isPhone, isInteger} from 'sapin'
+import {validate, required, collection, isPhone, isInteger} from 'sapin'
 
 // create a validator object
 const UserValidator = {
@@ -28,7 +28,7 @@ const UserValidator = {
 
 // validation function that is called when validating your form or object
 export const validateUserForm = (values) => {
-  return applyValidator(values, UserValidator)
+  return validate(values, UserValidator)
 }
 
 ...
@@ -38,7 +38,7 @@ const user = {
   firstName: 'Joe',   // pass
                       // no lastName provided
   age: 5.5,           // not an integer
-  phones: ['879879', '555-555-5555']  // first phone is invalid
+  phones: ['555', '555-555-5555']  // first phone is invalid
 }
 
 const error = validateUserForm(user)
@@ -49,10 +49,10 @@ console.log(error)
 Output is :
 ```shell
 {
-  lastName: 'required',
-  age: 'invalidInteger',
+  lastName: {error: 'required', params: {value: null}},
+  age: {error: 'invalidInteger', params: {value: 5.5}},
   phones {
-    '0': 'invalidPhoneNumber'
+    '0': { error: 'invalidPhoneNumber', params: {value: '555'}}
   }
 }
 ```
