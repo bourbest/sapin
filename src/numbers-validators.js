@@ -34,7 +34,7 @@ export const isNegative = ({value, config}) => {
   return compareSign(value, false, config)
 }
 
-const compareWithOtherField = (value, otherFieldName, otherFieldLabel, siblings, config, op) => {
+const compareWithOtherField = (value, otherFieldName, otherFieldLabel, siblings, config, op, errorCode) => {
   if (config.isEmptyValue(value)) return null
   let numberValue = config.getNumber(value)
   if (isNaN(numberValue)) return {error: Errors.isNumber, params: {value}}
@@ -45,48 +45,40 @@ const compareWithOtherField = (value, otherFieldName, otherFieldLabel, siblings,
   let otherNumberValue = config.getNumber(otherFieldValue)
   if (isNaN(otherNumberValue)) return null
 
-  return op(numberValue, otherNumberValue) ? null : {
-    params: {
+  if (!op(numberValue, otherNumberValue)) {
+    return config.formatError(errorCode, {
       value,
       otherFieldValue: otherNumberValue,
       otherFieldLabel
-    }
+    }, config)
   }
+  return null
 }
 
 export const numberGteToField = (fieldName, fieldLabel) => {
   return ({value, siblings, config}) => {
-    const error = compareWithOtherField(value, fieldName, fieldLabel, siblings, config, gte)
-    if (error) {
-      if (!error.error) error.error = Errors.numberGteToField
-      return config.formatError(error.error, error.params, config)
-    }
-
-    return null
+    return compareWithOtherField(value, fieldName, fieldLabel, siblings, config, gte, Errors.numberGteToField)
   }
 }
 
 export const numberLteToField = (fieldName, fieldLabel) => {
   return ({value, siblings, config}) => {
-    const error = compareWithOtherField(value, fieldName, fieldLabel, siblings, config, lte)
-    if (error) {
-      if (!error.error) error.error = Errors.numberLteToField
-      return config.formatError(error.error, error.params, config)
-    }
-
-    return null
+    return compareWithOtherField(value, fieldName, fieldLabel, siblings, config, lte, Errors.numberLteToField)
   }
 }
 
+const ensureRangeParamsAreValid = (minValue, maxValue) => {
+  if (isNil(minValue) || isNil(maxValue)) {
+    throw new Error('minValue and maxValue cannot be null')
+  } else if (minValue > maxValue) {
+    throw new Error('minValue > maxValue')
+  } else if (typeof minValue !== 'number' || typeof maxValue !== 'number') {
+    throw new Error('range value must be numbers')
+  }
+}
 export const numberWithinRange = (minValue, maxValue) => {
   if (process.env.NODE_ENV !== 'production') {
-    if (isNil(minValue) || isNil(maxValue)) {
-      throw new Error('minValue and maxValue cannot be null')
-    } else if (minValue > maxValue) {
-      throw new Error('minValue > maxValue')
-    } else if (typeof minValue !== 'number' || typeof maxValue !== 'number') {
-      throw new Error('range value must be numbers')
-    }
+    ensureRangeParamsAreValid(minValue, maxValue)
   }
 
   return ({value, config}) => {

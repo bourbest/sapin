@@ -1,22 +1,25 @@
-import {set, isObject, setWith, forEach, isArray, isEmpty, isFunction} from 'lodash'
+import {set, isObject, setWith, forEach, isArray, isEmpty, isFunction, keys, omit} from 'lodash'
 import {ValidatorTypes} from './collections'
 import {defaultConfig} from './common'
 
-const internalProps = new Set(['__type', '__validator', '__valueValidator'])
+const internalProps = ['__type', '__validator', '__valueValidator']
+
+const ensureArrayContainsOnlyFunctions = (validator, propName) => {
+  for (let i = 0; i < validator.length; i++) {
+    if (!isFunction(validator[i])) {
+      throw new Error(`validator definition at path ${propName} expects an array of functions. Item a index ${i} isn't one`)
+    }
+  }
+}
 const ensureValidatorIsValid = (validator, propName) => {
   if (isArray(validator)) {
-    for (let i = 0; i < validator.length; i++) {
-      if (!isFunction(validator[i])) {
-        throw new Error(`validator definition at path ${propName} expects an array of functions. Item a index ${i} isn't one`)
-      }
-    }
+    ensureArrayContainsOnlyFunctions(validator, propName)
   } else if (isObject(validator)) {
-    for (let prop in validator) {
-      if (!internalProps.has(prop)) {
-        const childPropName = `${propName}.${prop}`
-        ensureValidatorIsValid(validator[prop], childPropName)
-      }
-    }
+    const propValidators = keys(omit(validator, internalProps))
+    propValidators.forEach(prop => {
+      const childPropName = `${propName}.${prop}`
+      ensureValidatorIsValid(validator[prop], childPropName)
+    })
   } else {
     throw new Error(`validator definition at path ${propName} must be an object or an array of validator function`)
   }
