@@ -34,25 +34,32 @@ export const isNegative = ({value, config}) => {
   return compareSign(value, false, config)
 }
 
+const getNumbers = (value, otherFieldName, siblings, config) => {
+  const ret = {value: undefined, otherFieldValue: undefined}
+  if (!config.isEmptyValue(value)) {
+    ret.value = config.getNumber(value)
+  }
+  let otherFieldValue = get(siblings, otherFieldName)
+  if (!config.isEmptyValue(otherFieldValue)) {
+    ret.otherFieldValue = config.getNumber(otherFieldValue)
+  }
+  return ret
+}
+
 const compareWithOtherField = (value, otherFieldName, otherFieldLabel, siblings, config, op, errorCode) => {
-  if (config.isEmptyValue(value)) return null
-  let numberValue = config.getNumber(value)
-  if (isNaN(numberValue)) return {error: Errors.isNumber, params: {value}}
-
-  let otherFieldValue = get(siblings, otherFieldName, null)
-  if (config.isEmptyValue(otherFieldValue)) return null
-
-  let otherNumberValue = config.getNumber(otherFieldValue)
-  if (isNaN(otherNumberValue)) return null
-
-  if (!op(numberValue, otherNumberValue)) {
-    return config.formatError(errorCode, {
+  let err = null
+  const operands = getNumbers(value, otherFieldName, siblings, config)
+  if (!isNaN(operands.value) && !isNaN(operands.otherFieldValue)) {
+    err = op(operands.value, operands.otherFieldValue) ? null : config.formatError(errorCode, {
       value,
-      otherFieldValue: otherNumberValue,
+      otherFieldValue: operands.otherFieldValue,
       otherFieldLabel
     }, config)
+  } else if (operands.value !== undefined && isNaN(operands.value)) {
+    err = config.formatError(Errors.isNumber, {value}, config)
   }
-  return null
+
+  return err
 }
 
 export const numberGteToField = (fieldName, fieldLabel) => {

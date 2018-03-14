@@ -15,6 +15,14 @@ const isObjectOrArrayOfFunctions = (target) => {
   return ret
 }
 
+const ensureCollectionParamsAreValid = (validator, valueValidator) => {
+  if (!isObjectOrArrayOfFunctions(validator)) {
+    throw new Error('The \'validator\' argument of collection must be a validator object or an array of validator functions')
+  } else if (!isNil(valueValidator) && !isObjectOrArrayOfFunctions(valueValidator)) {
+    throw new Error('The \'valueValidator\' argument of collection must be a validator object or an array of validator functions')
+  }
+}
+
 export const collection = (validator, valueValidator) => {
   const ret = {
     __validator: validator,
@@ -23,11 +31,7 @@ export const collection = (validator, valueValidator) => {
 
   /* istanbul ignore else: node-env */
   if (process.env.NODE_ENV !== 'production') {
-    if (!isObjectOrArrayOfFunctions(validator)) {
-      throw new Error('The \'validator\' argument of collection must be a validator object or an array of validator functions')
-    } else if (!isNil(valueValidator) && !isObjectOrArrayOfFunctions(valueValidator)) {
-      throw new Error('The \'valueValidator\' argument of collection must be a validator object or an array of validator functions')
-    }
+    ensureCollectionParamsAreValid(validator, valueValidator)
   }
 
   // validator is either an array or an object when we reach this point
