@@ -11,9 +11,12 @@ import {
   isInteger,
   isPositive,
   isNegative,
-  numberGteToField,
-  numberLteToField,
-  numberWithinRange
+  isGt, isGte, isLt, isLte,
+  isGtField,
+  isGteToField,
+  isLtField,
+  isLteToField,
+  withinRange
 } from '../src/numbers-validators'
 
 describe('isNumber', function () {
@@ -138,6 +141,47 @@ describe('isNegative', function () {
   })
 })
 
+const testNumberComparerValidatorFunction = (validatorFunction, validatorName, validValue, invalidValue) => {
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(validatorFunction)
+
+  it('returns null when given a valid value', function () {
+    const ret = validatorFunction({value: validValue, config})
+    expect(ret).to.equal(null)
+  })
+
+  it(`returns Error.${validatorName} when given an invalid value`, function () {
+    const ret = validatorFunction({value: invalidValue, config})
+    expect(ret).to.deep.equal({
+      error: Errors[validatorName],
+      params: {value: invalidValue, threshold: 3}
+    })
+  })
+
+  it('returns Errors.isNumber when given text', function () {
+    const ret = validatorFunction({value: 'yo', config})
+    expect(ret).to.deep.equal({
+      error: Errors.isNumber,
+      params: {value: 'yo'}
+    })
+  })
+}
+
+describe('isGt', function () {
+  testNumberComparerValidatorFunction(isGt(3), 'isGt', 4, 3)
+})
+
+describe('isGte', function () {
+  testNumberComparerValidatorFunction(isGte(3), 'isGte', 3, 2)
+})
+
+describe('isLt', function () {
+  testNumberComparerValidatorFunction(isLt(3), 'isLt', 2, 3)
+})
+
+describe('isLte', function () {
+  testNumberComparerValidatorFunction(isLte(3), 'isLte', 3, 4)
+})
+
 const testThatValidatorHandlesBadNumberCorrectly = (makeValidator) => {
   const validate = makeValidator('otherField', 'fieldname')
   it('returns null when otherField is an invalid number', function () {
@@ -155,28 +199,54 @@ const testThatValidatorHandlesBadNumberCorrectly = (makeValidator) => {
     })
   })
 }
-describe('numberGteToField', function () {
-  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(numberGteToField('test', 'test'))
-  testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(numberGteToField)
-  testThatValidatorHandlesBadNumberCorrectly(numberGteToField)
+
+describe('isGtField', function () {
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isGtField('test', 'test'))
+  testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isGtField)
+  testThatValidatorHandlesBadNumberCorrectly(isGtField)
+
+  it('returns Errors.isGtField when given 0 and otherField is 0', function () {
+    const validate = isGtField('otherField', 'age')
+    const ret = validate({value: '0', siblings: {otherField: '0'}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.isGtField,
+      params: {
+        value: '0',
+        otherFieldLabel: 'age',
+        otherFieldValue: 0
+      }
+    })
+  })
+
+  it('returns null when given 0 and otherField is negative', function () {
+    const validate = isGtField('otherField')
+    const ret = validate({value: '0', siblings: {otherField: '-1'}, config})
+    expect(ret).to.equal(null)
+  })
+})
+
+describe('isGteToField', function () {
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isGteToField('test', 'test'))
+  testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isGteToField)
+  testThatValidatorHandlesBadNumberCorrectly(isGteToField)
 
   it('returns null when given 0 and otherField is 0', function () {
-    const validate = numberGteToField('otherField')
+    const validate = isGteToField('otherField')
     const ret = validate({value: '0', siblings: {otherField: '0'}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given 0 and otherField is negative', function () {
-    const validate = numberGteToField('otherField')
+    const validate = isGteToField('otherField')
     const ret = validate({value: '0', siblings: {otherField: '-1'}, config})
     expect(ret).to.equal(null)
   })
 
-  it('returns Errors.numberGteToField when a value less than other field', function () {
-    const validate = numberGteToField('otherField', 'age')
+  it('returns Errors.isGteToField when a value less than other field', function () {
+    const validate = isGteToField('otherField', 'age')
     const ret = validate({value: '-1', siblings: {otherField: '0'}, config})
     expect(ret).to.deep.equal({
-      error: Errors.numberGteToField,
+      error: Errors.isGteToField,
       params: {
         value: '-1',
         otherFieldLabel: 'age',
@@ -186,28 +256,53 @@ describe('numberGteToField', function () {
   })
 })
 
-describe('numberLteToField', function () {
-  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(numberLteToField('test', 'test'))
-  testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(numberLteToField)
-  testThatValidatorHandlesBadNumberCorrectly(numberLteToField)
+describe('isLtField', function () {
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isLtField('test', 'test'))
+  testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isLtField)
+  testThatValidatorHandlesBadNumberCorrectly(isLtField)
+
+  it('returns Errors.isLtField when given 0 and otherField is 0', function () {
+    const validate = isLtField('otherField', 'age')
+    const ret = validate({value: '0', siblings: {otherField: '0'}, config})
+    expect(ret).to.deep.equal({
+      error: Errors.isLtField,
+      params: {
+        value: '0',
+        otherFieldLabel: 'age',
+        otherFieldValue: 0
+      }
+    })
+  })
+
+  it('returns null when given 0 and otherField is positive', function () {
+    const validate = isLtField('otherField')
+    const ret = validate({value: '0', siblings: {otherField: '1'}, config})
+    expect(ret).to.equal(null)
+  })
+})
+
+describe('isLteToField', function () {
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isLteToField('test', 'test'))
+  testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isLteToField)
+  testThatValidatorHandlesBadNumberCorrectly(isLteToField)
 
   it('returns null when given 0 and otherField is 0', function () {
-    const validate = numberLteToField('otherField')
+    const validate = isLteToField('otherField')
     const ret = validate({value: '0', siblings: {otherField: '0'}, config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given 0 and otherField is positive', function () {
-    const validate = numberLteToField('otherField')
+    const validate = isLteToField('otherField')
     const ret = validate({value: '0', siblings: {otherField: '1'}, config})
     expect(ret).to.equal(null)
   })
 
-  it('returns Errors.numberLteToField with params when a value greater than other field', function () {
-    const validate = numberLteToField('otherField', 'age')
+  it('returns Errors.isLteToField with params when a value greater than other field', function () {
+    const validate = isLteToField('otherField', 'age')
     const ret = validate({value: '1', siblings: {otherField: '0'}, config})
     expect(ret).to.deep.equal({
-      error: Errors.numberLteToField,
+      error: Errors.isLteToField,
       params: {
         value: '1',
         otherFieldLabel: 'age',
@@ -217,26 +312,26 @@ describe('numberLteToField', function () {
   })
 })
 
-describe('numberWithinRange', function () {
-  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(numberWithinRange(0, 5))
+describe('withinRange', function () {
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(withinRange(0, 5))
 
   it('returns null when given value equal to minValue', function () {
-    const validate = numberWithinRange(0, 5)
+    const validate = withinRange(0, 5)
     const ret = validate({value: '0', config})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given value equal to maxValue', function () {
-    const validate = numberWithinRange(0, 5)
+    const validate = withinRange(0, 5)
     const ret = validate({value: '5', config})
     expect(ret).to.equal(null)
   })
 
   it('returns Errors.numberWithingRange when given value outside range', function () {
-    const validate = numberWithinRange(0, 5)
+    const validate = withinRange(0, 5)
     const ret = validate({value: '5.1', config})
     expect(ret).to.deep.equal({
-      error: Errors.numberWithinRange,
+      error: Errors.withinRange,
       params: {
         value: '5.1',
         minValue: 0,
@@ -246,7 +341,7 @@ describe('numberWithinRange', function () {
   })
 
   it('returns Errors.isNumber when given invalid number', function () {
-    const validate = numberWithinRange(0, 5)
+    const validate = withinRange(0, 5)
     const ret = validate({value: 'yo', config})
     expect(ret).to.deep.equal({
       error: Errors.isNumber,
@@ -257,22 +352,22 @@ describe('numberWithinRange', function () {
   })
 
   it('throws when given a text minValue', function () {
-    expect(() => numberWithinRange('5', 5)).to.throw('range value must be numbers')
+    expect(() => withinRange('5', 5)).to.throw('range value must be numbers')
   })
 
   it('throws when given a text maxValue', function () {
-    expect(() => numberWithinRange(5, '5')).to.throw('range value must be numbers')
+    expect(() => withinRange(5, '5')).to.throw('range value must be numbers')
   })
 
   it('throws when given a null minValue', function () {
-    expect(() => numberWithinRange(null, 5)).to.throw('minValue and maxValue cannot be null')
+    expect(() => withinRange(null, 5)).to.throw('minValue and maxValue cannot be null')
   })
 
   it('throws when given a null maxValue', function () {
-    expect(() => numberWithinRange(5, null)).to.throw('minValue and maxValue cannot be null')
+    expect(() => withinRange(5, null)).to.throw('minValue and maxValue cannot be null')
   })
 
   it('throws when given a minValue > maxValue', function () {
-    expect(() => numberWithinRange(5, 4)).to.throw('minValue > maxValue')
+    expect(() => withinRange(5, 4)).to.throw('minValue > maxValue')
   })
 })

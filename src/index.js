@@ -3,9 +3,12 @@ export {
   isInteger,
   isPositive,
   isNegative,
-  numberGteToField,
-  numberLteToField,
-  numberWithinRange
+  isGt, isGte, isLt, isLte,
+  isGtField,
+  isGteToField,
+  isLtField,
+  isLteToField,
+  withinRange
 } from './numbers-validators'
 
 export {

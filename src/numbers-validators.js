@@ -1,4 +1,4 @@
-import {isNil, get, gte, lte} from 'lodash'
+import {isNil, get, gt, gte, lt, lte} from 'lodash'
 import {Errors} from './common'
 
 export const isNumber = ({value, config}) => {
@@ -65,15 +65,65 @@ const compareWithOtherField = (value, otherFieldName, otherFieldLabel, siblings,
   return err
 }
 
-export const numberGteToField = (fieldName, fieldLabel) => {
-  return ({value, siblings, config}) => {
-    return compareWithOtherField(value, fieldName, fieldLabel, siblings, config, gte, Errors.numberGteToField)
+const compareToThreshold = (value, op, threshold, config, errorCode) => {
+  let err = null
+  let numberValue = NaN
+  if (!config.isEmptyValue(value)) {
+    numberValue = config.getNumber(value)
+    if (isNaN(numberValue)) {
+      err = config.formatError(Errors.isNumber, {value}, config)
+    } else if (!op(numberValue, threshold)) {
+      err = config.formatError(errorCode, {value, threshold}, config)
+    }
+  }
+  return err
+}
+
+export const isGte = (threshold) => {
+  return ({value, config}) => {
+    return compareToThreshold(value, gte, threshold, config, Errors.isGte)
   }
 }
 
-export const numberLteToField = (fieldName, fieldLabel) => {
+export const isGt = (threshold) => {
+  return ({value, config}) => {
+    return compareToThreshold(value, gt, threshold, config, Errors.isGt)
+  }
+}
+
+export const isLte = (threshold) => {
+  return ({value, config}) => {
+    return compareToThreshold(value, lte, threshold, config, Errors.isLte)
+  }
+}
+
+export const isLt = (threshold) => {
+  return ({value, config}) => {
+    return compareToThreshold(value, lt, threshold, config, Errors.isLt)
+  }
+}
+
+export const isGteToField = (fieldName, fieldLabel) => {
   return ({value, siblings, config}) => {
-    return compareWithOtherField(value, fieldName, fieldLabel, siblings, config, lte, Errors.numberLteToField)
+    return compareWithOtherField(value, fieldName, fieldLabel, siblings, config, gte, Errors.isGteToField)
+  }
+}
+
+export const isGtField = (fieldName, fieldLabel) => {
+  return ({value, siblings, config}) => {
+    return compareWithOtherField(value, fieldName, fieldLabel, siblings, config, gt, Errors.isGtField)
+  }
+}
+
+export const isLteToField = (fieldName, fieldLabel) => {
+  return ({value, siblings, config}) => {
+    return compareWithOtherField(value, fieldName, fieldLabel, siblings, config, lte, Errors.isLteToField)
+  }
+}
+
+export const isLtField = (fieldName, fieldLabel) => {
+  return ({value, siblings, config}) => {
+    return compareWithOtherField(value, fieldName, fieldLabel, siblings, config, lt, Errors.isLtField)
   }
 }
 
@@ -86,7 +136,7 @@ const ensureRangeParamsAreValid = (minValue, maxValue) => {
     throw new Error('range value must be numbers')
   }
 }
-export const numberWithinRange = (minValue, maxValue) => {
+export const withinRange = (minValue, maxValue) => {
   if (process.env.NODE_ENV !== 'production') {
     ensureRangeParamsAreValid(minValue, maxValue)
   }
@@ -97,7 +147,7 @@ export const numberWithinRange = (minValue, maxValue) => {
     if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
     if (numberValue < minValue || numberValue > maxValue) {
       return config.formatError(
-        Errors.numberWithinRange,
+        Errors.withinRange,
         {value, minValue, maxValue},
         config
       )
