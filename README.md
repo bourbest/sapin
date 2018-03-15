@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/bourbest/sapin.svg?branch=master)](https://travis-ci.org/bourbest/sapin)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 [![Coverage Status](https://coveralls.io/repos/github/bourbest/sapin/badge.svg?branch=master)](https://coveralls.io/github/bourbest/sapin?branch=master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/abca65344775ccc8b3bf/maintainability)](https://codeclimate.com/github/bourbest/sapin/maintainability)
 
 # sapin
 A library that allows to create an object validation function using a declarative style. The function will store each error
@@ -10,6 +11,7 @@ validate forms connected with [redux-form](https://redux-form.com), it can valid
 ## Features
 * Provides functions for most basic field validations (no date validations, see why)
 * Supports the validation of attributes that are arrays of values, array of objects, map of objects, map of values
+* Validations on an object property can be applied to its members, on the whole object or on both
 * Allows to easily add your own custom validator functions
 * Supports multiple languages by allowing you to provide your own formatError function
 
@@ -23,7 +25,12 @@ const UserValidator = {
   firstName: [required],
   lastName: [required],
   age: [required, isInteger],
-  phones: collection([isPhone])
+  phones: collection([isPhone]),
+  address: {
+    civicNumber: [required],
+    streetName: [required],
+    city: [required]
+  }
 }
 
 // validation function that is called when validating your form or object
@@ -39,6 +46,11 @@ const user = {
                       // no lastName provided
   age: 5.5,           // not an integer
   phones: ['555', '555-555-5555']  // first phone is invalid
+  address: {
+    civicNumber: '344',
+    streetName: '65th street',
+    city: 'Québec'
+  }
 }
 
 const error = validateUserForm(user)

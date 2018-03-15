@@ -9,18 +9,20 @@ export const isEmail = ({value, config}) => {
 
 export const minLength = (minLength) => {
   return ({value, config}) => {
-    if (isNil(value) || value.length < minLength) {
-      return config.formatError(Errors.minLength, {value, minLength}, config)
+    let err = null
+    if (!config.isEmptyValue(value) && value.length < minLength) {
+      err = config.formatError(Errors.minLength, {value, minLength}, config)
     }
-    return null
+    return err
   }
 }
 
 export const maxLength = (maxLength) => {
   return ({value, config}) => {
-    if (!isNil(value) && value.length > maxLength) {
-      return config.formatError(Errors.maxLength, {value, maxLength}, config)
+    let err = null
+    if (!config.isEmptyValue(value) && value.length > maxLength) {
+      err = config.formatError(Errors.maxLength, {value, maxLength}, config)
     }
-    return null
+    return err
   }
 }

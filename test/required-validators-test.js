@@ -1,5 +1,8 @@
 import {expect} from 'chai'
-import {Errors, defaultConfig as config} from '../src/common'
+import {
+  AlteredErrors as Errors,
+  CommonTestConfiguration as config
+} from './common-test-cases'
 import {
   required,
   requiredIfOtherFieldIsTrue,
