@@ -1,4 +1,4 @@
-import {setWith, forEach, isArray, assign, isObject, omit, size, isNil} from 'lodash'
+import {setWith, forEach, isArray, assign, isObject, omit, size, isNil, isFunction} from 'lodash'
 import {ValidatorTypes} from './collections'
 
 export const ValidatorRunner = function (entity, validators, config) {
@@ -44,6 +44,7 @@ ValidatorRunner.prototype.setError = function (path, error, value) {
 }
 
 ValidatorRunner.prototype.validateField = function (propPath, value, validations, siblings) {
+  validations = isFunction(validations) ? [validations] : validations
   const error = this.runFunctions(value, validations, siblings)
   if (error) {
     this.setError(propPath, error, value)
@@ -79,7 +80,7 @@ ValidatorRunner.prototype.validateObject = function (objectPath, object, objectV
     const propPath = objectPath ? `${objectPath}.${propNameToValidate}` : propNameToValidate
     const value = this.getValue(object, propNameToValidate, propValidations, this)
 
-    if (isArray(propValidations)) {
+    if (isArray(propValidations) || isFunction(propValidations)) {
       this.validateField(propPath, value, propValidations, siblings)
     } else if (!propValidations.__type) {
       this.validateObject(propPath, value, propValidations, object)
