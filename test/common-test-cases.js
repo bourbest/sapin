@@ -12,13 +12,12 @@ const generateAlteredErrors = () => {
 
 export const AlteredErrors = generateAlteredErrors()
 
-// this function aims to make sure every validator function calls CommonTestConfiguration.formatError function
-// instead of generating its own error. By adding and *, the tests case can simply compare the
-// resulting error with the AlteredErrors collection
-const alterErrorForTest = (error, params) => {
+// this function aims to make sure every validator function calls return has been processed by
+// // CommonTestConfiguration.formatError function.
+const alterErrorForTest = (error) => {
   return {
-    error: error + '*',
-    params
+    error: error.error + '*',
+    params: error.params
   }
 }
 
@@ -40,18 +39,16 @@ export const testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty = (validatorF
     expect(ret).to.equal(null)
   })
 }
-export const testThatValidatorHandlesValidAndInvalidValue = (validatorName, validatorFunction, validValue, invalidValue) => {
+export const testThatValidatorHandlesValidAndInvalidValue = (validatorName, validatorFunction, validValue, invalidValue, expectedError) => {
   it('returns null when given a valid value', function () {
     const ret = validatorFunction({value: validValue, config: CommonTestConfiguration})
     expect(ret).to.equal(null)
   })
 
   it(`returns Error.${validatorName} when given an invalid value`, function () {
+    const expected = expectedError || Errors[validatorName]
     const ret = validatorFunction({value: invalidValue, config: CommonTestConfiguration})
-    expect(ret).to.deep.equal({
-      error: AlteredErrors[validatorName],
-      params: {value: invalidValue}
-    })
+    expect(ret).to.deep.equal(expected)
   })
 }
 

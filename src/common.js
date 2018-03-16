@@ -22,8 +22,8 @@ export const Errors = {
 
 export const noTrim = () => true
 
-const internalFormatError = (error, errorParams /*, config */) => {
-  return {error, params: errorParams}
+const internalFormatError = (error /*, config */) => {
+  return error
 }
 
 const getValue = (entity, path, validators, config) => {

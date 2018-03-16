@@ -1,9 +1,8 @@
 import {expect} from 'chai'
+import {Errors} from '../src/common'
 import {
-  AlteredErrors as Errors,
   CommonTestConfiguration as config,
-  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty,
-  testThatValidatorHandlesValidAndInvalidValue
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty
 } from './common-test-cases'
 import {
   minLength,
@@ -52,10 +51,7 @@ describe('isEmail', function () {
 
   it('returns Errors.isEmail when given a value that do not match regex', function () {
     const ret = isEmail({value: 'test', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isEmail,
-      params: {value: 'test'}
-    })
+    expect(ret).to.deep.equal(Errors.isEmail)
   })
 
   it('returns null when given a value that matches the regex', function () {

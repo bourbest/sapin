@@ -27,6 +27,20 @@ describe('validate', function () {
       const test = () => validate({}, '')
       expect(test).to.throw('validate second argument must be a validator object')
     })
+
+    it('throws when validator function returns an error object without the error property', function () {
+      const fakeValidator = () => ({})
+      const Validator = {name: [fakeValidator]}
+      const test = () => validate({}, Validator)
+      expect(test).to.throw('returned an error object without specifying the error property')
+    })
+
+    it('throws when validator function returns an unexpected additional property', function () {
+      const fakeValidator = () => ({error: 'bad', invalidProp: 'test'})
+      const Validator = {name: [fakeValidator]}
+      const test = () => validate({}, Validator)
+      expect(test).to.throw('unexpected properties')
+    })
   })
 
   describe('trim', function () {
@@ -271,8 +285,9 @@ describe('validate', function () {
     })
 
     it('applies the value validator when given object collection', function () {
+      const sampleError = {error: 'sampleError', params: {}}
       const sampleValueValidator = () => {
-        return 'sampleError'
+        return sampleError
       }
       const collectionWithValueValidator = {
         addresses: collection({
@@ -290,7 +305,7 @@ describe('validate', function () {
       const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         addresses: {
-          _error: 'sampleError',
+          _error: sampleError,
           work: {
             streetName: {error: Errors.required, params: {value: undefined}},
             civicNumber: {error: Errors.required, params: {value: undefined}}
@@ -320,8 +335,9 @@ describe('validate', function () {
     })
 
     it('applies the value validator when given an array collection', function () {
+      const sampleError = {error: 'sampleError', params: {}}
       const sampleValueValidator = () => {
-        return 'sampleError'
+        return sampleError
       }
       const collectionWithValueValidator = {
         addresses: collection({
@@ -340,7 +356,7 @@ describe('validate', function () {
       const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         addresses: {
-          _error: 'sampleError',
+          _error: sampleError,
           '1': {
             civicNumber: {error: Errors.required, params: {value: undefined}}
           }
@@ -480,8 +496,9 @@ describe('validate', function () {
     })
 
     it('applies the value validator when given an object collection', function () {
+      const sampleError = {error: 'sampleError', params: {}}
       const sampleValueValidator = () => {
-        return 'sampleError'
+        return sampleError
       }
       const collectionWithValueValidator = {
         scores: collection([required, isNumber], [sampleValueValidator])
@@ -498,7 +515,7 @@ describe('validate', function () {
       const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         scores: {
-          _error: 'sampleError',
+          _error: sampleError,
           science: {error: Errors.required, params: {value: null}},
           history: {error: Errors.isNumber, params: {value: 'yo'}}
         }
@@ -506,8 +523,9 @@ describe('validate', function () {
     })
 
     it('applies the value validator when given an array collection', function () {
+      const sampleError = {error: 'sampleError', params: {}}
       const sampleValueValidator = () => {
-        return 'sampleError'
+        return sampleError
       }
       const collectionWithValueValidator = {
         scores: collection([required, isNumber], [sampleValueValidator])
@@ -520,7 +538,7 @@ describe('validate', function () {
       const ret = validate(entity, collectionWithValueValidator)
       expect(ret).to.deep.equal({
         scores: {
-          _error: 'sampleError',
+          _error: sampleError,
           '1': {error: Errors.required, params: {value: null}},
           '2': {error: Errors.isNumber, params: {value: 'yo'}}
         }
