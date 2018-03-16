@@ -1,4 +1,4 @@
-import {set, setWith, forEach, isArray, assign} from 'lodash'
+import {setWith, forEach, isArray, assign, isObject, omit, size, isNil} from 'lodash'
 import {ValidatorTypes} from './collections'
 
 export const ValidatorRunner = function (entity, validators, config) {
@@ -22,17 +22,38 @@ ValidatorRunner.prototype.runFunctions = function (value, validations, siblings)
   return err
 }
 
+const ensureValidatorErrorIsValid = (error) => {
+  if (isObject(error)) {
+    if (isNil(error.error)) {
+      throw new Error('a custom validator returned an error object without specifying the error property')
+    }
+    const purgedError = omit(error, ['error', 'params'])
+    if (size(purgedError) > 0) {
+      throw new Error('a custom validator returned an error object with unexpected properties. Additional properties should be added to the params attribute')
+    }
+  }
+}
+
+ValidatorRunner.prototype.setError = function (path, error, value) {
+  if (process.env.NODE_ENV !== 'production') {
+    ensureValidatorErrorIsValid(error)
+  }
+  const errorObject = isObject(error) ? error : {error, params: {value}}
+  const formattedError = this.formatError(errorObject)
+  setWith(this.errors, path, formattedError, Object)
+}
+
 ValidatorRunner.prototype.validateField = function (propPath, value, validations, siblings) {
-  const err = this.runFunctions(value, validations, siblings)
-  if (err) {
-    setWith(this.errors, propPath, err, Object)
+  const error = this.runFunctions(value, validations, siblings)
+  if (error) {
+    this.setError(propPath, error, value)
   }
 }
 
 ValidatorRunner.prototype.applyValueValidatorOnObject = function (propPath, value, valueValidator, siblings) {
   const valueError = this.runFunctions(value, valueValidator, siblings)
   if (valueError) {
-    set(this.errors, `${propPath}._error`, valueError)
+    this.setError(`${propPath}._error`, valueError, value)
   }
 }
 

@@ -1,6 +1,6 @@
 import {expect} from 'chai'
+import {Errors} from '../src/common'
 import {
-  AlteredErrors as Errors,
   CommonTestConfiguration as config,
   testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty,
   testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty,
@@ -41,10 +41,7 @@ describe('isNumber', function () {
 
   it('returns Error.isNumber when given a number two dots', function () {
     const ret = isNumber({value: '1.5.9', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isNumber,
-      params: {value: '1.5.9'}
-    })
+    expect(ret).to.deep.equal(Errors.isNumber)
   })
 })
 
@@ -59,10 +56,7 @@ describe('isInteger', function () {
 
   it('returns Error.isInteger when given a decimal number', function () {
     const ret = isInteger({value: '1.5', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isInteger,
-      params: {value: '1.5'}
-    })
+    expect(ret).to.equal(Errors.isInteger)
   })
 })
 
@@ -87,18 +81,12 @@ describe('isPositive', function () {
 
   it('returns Errors.isPositive when given a negative number', function () {
     const ret = isPositive({value: '-0.1', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isPositive,
-      params: {value: '-0.1'}
-    })
+    expect(ret).to.equal(Errors.isPositive)
   })
 
   it('returns Errors.isNumber when given text', function () {
     const ret = isPositive({value: 'yo', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isNumber,
-      params: {value: 'yo'}
-    })
+    expect(ret).to.equal(Errors.isNumber)
   })
 })
 
@@ -118,26 +106,17 @@ describe('isNegative', function () {
 
   it('returns Errors.isNumber when given text', function () {
     const ret = isNegative({value: 'yo', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isNumber,
-      params: {value: 'yo'}
-    })
+    expect(ret).to.equal(Errors.isNumber)
   })
 
   it('returns Errors.isNegative when given 0', function () {
     const ret = isNegative({value: '0', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isNegative,
-      params: {value: '0'}
-    })
+    expect(ret).to.equal(Errors.isNegative)
   })
 
   it('returns Errors.isNegative when given a positive number', function () {
     const ret = isNegative({value: '0.1', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isNegative,
-      params: {value: '0.1'}
-    })
+    expect(ret).to.equal(Errors.isNegative)
   })
 })
 
@@ -159,10 +138,7 @@ const testNumberComparerValidatorFunction = (validatorFunction, validatorName, v
 
   it('returns Errors.isNumber when given text', function () {
     const ret = validatorFunction({value: 'yo', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isNumber,
-      params: {value: 'yo'}
-    })
+    expect(ret).to.equal(Errors.isNumber)
   })
 }
 
@@ -191,12 +167,7 @@ const testThatValidatorHandlesBadNumberCorrectly = (makeValidator) => {
 
   it('returns Errors.isNumber when a value is not a number', function () {
     const ret = validate({value: 'yo', siblings: {otherField: 'dfsd'}, config})
-    expect(ret).to.deep.equal({
-      error: Errors.isNumber,
-      params: {
-        value: 'yo'
-      }
-    })
+    expect(ret).to.equal(Errors.isNumber)
   })
 }
 
@@ -343,12 +314,7 @@ describe('withinRange', function () {
   it('returns Errors.isNumber when given invalid number', function () {
     const validate = withinRange(0, 5)
     const ret = validate({value: 'yo', config})
-    expect(ret).to.deep.equal({
-      error: Errors.isNumber,
-      params: {
-        value: 'yo'
-      }
-    })
+    expect(ret).to.equal(Errors.isNumber)
   })
 
   it('throws when given a text minValue', function () {

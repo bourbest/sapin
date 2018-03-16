@@ -3,7 +3,7 @@ import {Errors} from './common'
 
 // required validators
 export const required = ({value, config}) => {
-  return config.isEmptyValue(value) ? config.formatError(Errors.required, {value}, config) : null
+  return config.isEmptyValue(value) ? Errors.required : null
 }
 
 export const requiredIfOtherFieldIsTrue = (otherFieldName) => {
@@ -28,13 +28,11 @@ export const requiredIfOtherFieldIsFalse = (otherFieldName) => {
 
 // expectedFieldValue can be a single value or an array of values
 export const requiredIfOtherFieldEquals = (otherFieldName, expectedFieldValue) => {
+  expectedFieldValue = isArray(expectedFieldValue) ? expectedFieldValue : [expectedFieldValue]
+  const expectedValues = new Set(expectedFieldValue)
   return (params) => {
     const otherFieldValue = get(params.siblings, otherFieldName, false)
-    if (isArray(expectedFieldValue)) {
-      if (expectedFieldValue.indexOf(otherFieldValue) > -1) {
-        return required(params)
-      }
-    } else if (otherFieldValue === expectedFieldValue) {
+    if (expectedValues.has(otherFieldValue)) {
       return required(params)
     }
     return null

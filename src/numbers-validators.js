@@ -4,13 +4,13 @@ import {Errors} from './common'
 export const isNumber = ({value, config}) => {
   if (config.isEmptyValue(value)) return null
   const valueToTest = config.getNumber(value)
-  return isNaN(valueToTest) ? config.formatError(Errors.isNumber, {value}, config) : null
+  return isNaN(valueToTest) ? Errors.isNumber : null
 }
 
 export const isInteger = ({value, config}) => {
   if (config.isEmptyValue(value)) return null
   const numberValue = config.getNumber(value)
-  return (!Number.isInteger(numberValue)) ? config.formatError(Errors.isInteger, {value}, config) : null
+  return (!Number.isInteger(numberValue)) ? Errors.isInteger : null
 }
 
 const compareSign = (value, isPositive, config) => {
@@ -19,11 +19,11 @@ const compareSign = (value, isPositive, config) => {
   if (!config.isEmptyValue(value)) {
     const numberValue = config.getNumber(value)
     if (isNaN(numberValue)) {
-      err = config.formatError(Errors.isNumber, {value}, config)
+      err = Errors.isNumber
     } else if (isPositive && numberValue < 0) {
-      err = config.formatError(Errors.isPositive, {value}, config)
+      err = Errors.isPositive
     } else if (!isPositive && numberValue >= 0) {
-      err = config.formatError(Errors.isNegative, {value}, config)
+      err = Errors.isNegative
     }
   }
   return err
@@ -53,13 +53,16 @@ const compareWithOtherField = (value, otherFieldName, otherFieldLabel, siblings,
   let err = null
   const operands = getNumbers(value, otherFieldName, siblings, config)
   if (!isNaN(operands.value) && !isNaN(operands.otherFieldValue)) {
-    err = op(operands.value, operands.otherFieldValue) ? null : config.formatError(errorCode, {
-      value,
-      otherFieldValue: operands.otherFieldValue,
-      otherFieldLabel
-    }, config)
+    err = op(operands.value, operands.otherFieldValue) ? null : {
+      error: errorCode,
+      params: {
+        value,
+        otherFieldValue: operands.otherFieldValue,
+        otherFieldLabel
+      }
+    }
   } else if (operands.value !== undefined && isNaN(operands.value)) {
-    err = config.formatError(Errors.isNumber, {value}, config)
+    err = Errors.isNumber
   }
 
   return err
@@ -71,9 +74,12 @@ const compareToThreshold = (value, op, threshold, config, errorCode) => {
   if (!config.isEmptyValue(value)) {
     numberValue = config.getNumber(value)
     if (isNaN(numberValue)) {
-      err = config.formatError(Errors.isNumber, {value}, config)
+      err = Errors.isNumber
     } else if (!op(numberValue, threshold)) {
-      err = config.formatError(errorCode, {value, threshold}, config)
+      err = {
+        error: errorCode,
+        params: {value, threshold}
+      }
     }
   }
   return err
@@ -144,13 +150,12 @@ export const withinRange = (minValue, maxValue) => {
   return ({value, config}) => {
     if (config.isEmptyValue(value)) return null
     const numberValue = config.getNumber(value)
-    if (isNaN(numberValue)) return config.formatError(Errors.isNumber, {value}, config)
+    if (isNaN(numberValue)) return Errors.isNumber
     if (numberValue < minValue || numberValue > maxValue) {
-      return config.formatError(
-        Errors.withinRange,
-        {value, minValue, maxValue},
-        config
-      )
+      return {
+        error: Errors.withinRange,
+        params: {value, minValue, maxValue}
+      }
     }
     return null
   }
