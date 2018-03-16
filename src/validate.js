@@ -14,14 +14,14 @@ const ensureArrayContainsOnlyFunctions = (validator, propName) => {
 const ensureValidatorIsValid = (validator, propName) => {
   if (isArray(validator)) {
     ensureArrayContainsOnlyFunctions(validator, propName)
-  } else if (isObject(validator)) {
+  } else if (!isFunction(validator) && isObject(validator)) {
     const propValidators = keys(omit(validator, internalProps))
     propValidators.forEach(prop => {
       const childPropName = `${propName}.${prop}`
       ensureValidatorIsValid(validator[prop], childPropName)
     })
-  } else {
-    throw new Error(`validator definition at path ${propName} must be an object or an array of validator function`)
+  } else if (!isFunction(validator)) {
+    throw new Error(`validator definition at path ${propName} must be an object, a function or an array of validator function`)
   }
 }
 

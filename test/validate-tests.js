@@ -14,7 +14,7 @@ describe('validate', function () {
     it('throws when validator has an invalid prop', function () {
       const validator = {name: {firstName: ''}}
       const test = () => validate({}, validator)
-      expect(test).to.throw('validator definition at path name.firstName must be an object or an array of validator function')
+      expect(test).to.throw('validator definition at path name.firstName must be an object, a function or an array of validator function')
     })
 
     it('throws when validator has a non function', function () {
@@ -134,6 +134,32 @@ describe('validate', function () {
       expect(ret).to.deep.equal({
         description: {
           fr: {error: Errors.required, params: {value: undefined}}
+        }
+      })
+    })
+
+    it('can accept an attribute mapped to a single function', function () {
+      const validator = {
+        'name.fr': required
+      }
+      const entity = {
+        name: {fr: 'test'}
+      }
+      const ret = validate(entity, validator)
+      expect(ret).to.deep.equal({})
+    })
+
+    it('will return an error when single validator returns an error', function () {
+      const validator = {
+        'name': required
+      }
+      const entity = {}
+
+      const ret = validate(entity, validator)
+      expect(ret).to.deep.equal({
+        name: {
+          error: Errors.required,
+          params: {value: undefined}
         }
       })
     })
