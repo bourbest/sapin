@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/bourbest/sapin"
   },
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Create object validator using a declarative paradigm",
   "main": "./lib/sapin.min.js",
   "scripts": {
