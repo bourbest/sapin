@@ -32,6 +32,5 @@ export {
 export {collection} from './collections'
 
 export {
-  validateField,
   validate
 } from './validate'
