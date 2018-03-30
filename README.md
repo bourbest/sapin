@@ -63,13 +63,15 @@ console.log(error)
 Output is :
 ```shell
 {
-  lastName: {error: 'required', params: {value: null}},
-  age: {error: 'invalidInteger', params: {value: 5.5}},
+  lastName: {error: 'sapin.required', params: {value: null}},
+  age: {error: 'sapin.invalidInteger', params: {value: 5.5}},
   phones {
-    '0': { error: 'invalidPhoneNumber', params: {value: '555'}}
+    '0': { error: 'myErrors.invalidPhoneNumber', params: {value: '555'}}
   }
 }
 ```
+## Documentation
+Documentation can be found in the [wiki](https://github.com/bourbest/sapin/wiki)
 
 ## Installation
 
