@@ -1,23 +1,23 @@
 import {get, trim, isArray, isString, keys, filter} from 'lodash'
 
 export const Errors = {
-  required: 'required',
-  isNumber: 'invalidNumber',
-  isInteger: 'invalidInteger',
-  isPositive: 'valueShouldBePositive',
-  isNegative: 'valueShouldBeNegative',
-  isGt: 'valueShouldBeGt',
-  isGte: 'valueShouldBeGte',
-  isLt: 'valueShouldBeLt',
-  isLte: 'valueShoudBeLte',
-  isGtField: 'valueShouldBeGtField',
-  isGteToField: 'valueShouldBeGteField',
-  isLtField: 'valueShouldBeLtField',
-  isLteToField: 'valueShouldBeLteField',
-  withinRange: 'valueNotInRange',
-  minLength: 'valueNotLongEnough',
-  maxLength: 'valueTooLong',
-  isEmail: 'invalidEmail'
+  required: 'sapin.required',
+  isNumber: 'sapin.invalidNumber',
+  isInteger: 'sapin.invalidInteger',
+  isPositive: 'sapin.valueShouldBePositive',
+  isNegative: 'sapin.valueShouldBeNegative',
+  isGt: 'sapin.valueShouldBeGt',
+  isGte: 'sapin.valueShouldBeGte',
+  isLt: 'sapin.valueShouldBeLt',
+  isLte: 'sapin.valueShouldBeLte',
+  isGtField: 'sapin.valueShouldBeGtField',
+  isGteToField: 'sapin.valueShouldBeGteField',
+  isLtField: 'sapin.valueShouldBeLtField',
+  isLteToField: 'sapin.valueShouldBeLteField',
+  withinRange: 'sapin.valueNotInRange',
+  minLength: 'sapin.valueNotLongEnough',
+  maxLength: 'sapin.valueTooLong',
+  isEmail: 'sapin.invalidEmail'
 }
 
 export const noTrim = () => true

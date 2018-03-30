@@ -6,14 +6,16 @@
     "type": "git",
     "url": "https://github.com/bourbest/sapin"
   },
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Create object validator using a declarative paradigm",
-  "main": "./lib/sapin.min.js",
+  "main": "./lib/index.js",
   "scripts": {
     "lint": "eslint ./src/*.js",
     "test": "nyc mocha",
+    "dev": "webpack --config ./webpack.config",
+    "prod": "webpack --config ./webpack.config --env=production",
     "coverage": "nyc --require babel-register report --reporter=text-lcov | coveralls",
-    "build": "webpack --config ./webpack.config"
+    "build": "npm run dev && npm run prod"
   },
   "peerDependencies": {
     "lodash": "^4.17.5"
@@ -31,6 +33,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
     "chai": "4.1.2",
+    "copy-webpack-plugin": "^4.5.1",
     "coveralls": "^3.0.0",
     "eslint": "^4.18.2",
     "eslint-standard": "^1.0.2",

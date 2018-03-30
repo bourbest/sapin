@@ -4,12 +4,13 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/abca65344775ccc8b3bf/maintainability)](https://codeclimate.com/github/bourbest/sapin/maintainability)
 
 # sapin
-A library that allows to create an object validation function using a declarative style. The function will store each error
-encountered in the resulting object at the same path as the property that had the error. While it can be used to easily
+Sapin is a library that allows to easily create a _Validator object_ using a declarative style. The _validate_ function
+can then be used to validate an object against the validator. The function will store each error
+encountered in a new object at the same path as the property that had the error. While it can be used to easily
 validate forms connected with [redux-form](https://redux-form.com), it can validate any structure.
 
 ## Features
-* Provides functions for most basic field validations (no date validations, see why)
+* Provides functions for most basic field validations (no date validations, use your own formats and libs)
 * Supports the validation of attributes that are arrays of values, array of objects, map of objects, map of values
 * Validations on an object property can be applied to its members, on the whole object or on both
 * Allows to easily add your own custom validator functions
@@ -18,7 +19,8 @@ validate forms connected with [redux-form](https://redux-form.com), it can valid
 # Example
 ```js
 // Load validators functions
-import {validate, required, collection, isPhone, isInteger} from 'sapin'
+import {validate, required, collection, isInteger} from 'sapin'
+import {isPhone} from 'myCustomValidators'
 
 // create a validator object
 const UserValidator = {
@@ -79,9 +81,5 @@ $ npm i --save sapin
 sapin is released under the [MIT license](https://github.com/bourbest/sapin/blob/master/LICENSE)
 
 ## Why sapin?
-
-TODO
-
-
-
-
+While there are many libraries out there that allow to achieve the same goal, Sapin allows to describe complex structures
+in a really simple manner. It is also really thin (10k) and exposes ES6 modules so that you can only grab what you need.
