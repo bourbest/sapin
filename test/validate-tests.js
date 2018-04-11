@@ -222,6 +222,31 @@ describe('validate', function () {
       expect(retSiblings).to.equal(entity)
       expect(retEntity).to.equal(entity)
     })
+
+    it('passes siblings and entity to subobject validator function', function () {
+      let receivedObject = null
+      const myCustomValidator = (params) => {
+        receivedObject = params
+        return null
+      }
+
+      const sampleValidator = {
+        addresses: {
+          streetName: [required, myCustomValidator]
+        }
+      }
+
+      const address = {streetName: 'test', civicNumber: '456'}
+      const entity = {
+        name: 'Joe',
+        addresses: address
+      }
+      validate(entity, sampleValidator)
+
+      expect(receivedObject.value).to.equal(address.streetName)
+      expect(receivedObject.siblings).to.equal(address)
+      expect(receivedObject.entity).to.equal(entity)
+    })
   })
 
   describe('on collectionOfObjects', function () {
@@ -232,6 +257,31 @@ describe('validate', function () {
         civicNumber: [required, isNumber]
       })
     }
+
+    it('calls each validator function with the right siblings and entity', function () {
+      let receivedObject = null
+      const myCustomValidator = (params) => {
+        receivedObject = params
+        return null
+      }
+
+      const sampleValidator = {
+        addresses: collection({
+          streetName: myCustomValidator
+        })
+      }
+
+      const address = {streetName: 'test', civicNumber: '456'}
+      const entity = {
+        name: 'Joe',
+        addresses: [address]
+      }
+      validate(entity, sampleValidator)
+
+      expect(receivedObject.value).to.equal(address.streetName)
+      expect(receivedObject.siblings).to.equal(address)
+      expect(receivedObject.entity).to.equal(entity)
+    })
 
     it('returns {} given an object with an array collection that respect all validations', function () {
       const entity = {

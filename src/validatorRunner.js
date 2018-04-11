@@ -83,7 +83,7 @@ ValidatorRunner.prototype.validateObject = function (objectPath, object, objectV
     if (isArray(propValidations) || isFunction(propValidations)) {
       this.validateField(propPath, value, propValidations, siblings)
     } else if (!propValidations.__type) {
-      this.validateObject(propPath, value, propValidations, object)
+      this.validateObject(propPath, value, propValidations, value)
     }
 
     if (propValidations.__valueValidator) {
