@@ -15,6 +15,9 @@ ValidatorRunner.prototype.run = function () {
 
 ValidatorRunner.prototype.runFunctions = function (value, validations, siblings) {
   let err = null
+  if (!isArray(validations)) {
+    validations = [validations]
+  }
   for (let i = 0; !err && i < validations.length; i++) {
     const validation = validations[i]
     err = validation({value, siblings, entity: this.entity, config: this})

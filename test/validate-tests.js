@@ -1,3 +1,4 @@
+import {size} from 'lodash'
 import {expect} from 'chai'
 import {Errors} from '../src/common'
 import {
@@ -472,6 +473,29 @@ describe('validate', function () {
               }
             }
           }
+        }
+      })
+    })
+
+    it('supports nested collections (array for each of object property ', function () {
+      const objectIsNotEmpty = ({value}) => {
+        if (!value || size(value) === 0) return 'error'
+        return null
+      }
+      const complexCollectionValidator = {
+        level1: collection(objectIsNotEmpty, objectIsNotEmpty)
+      }
+
+      const entity = {
+        level1: {
+          'valid': ['0', '1'],
+          'bad': []
+        }
+      }
+      const ret = validate(entity, complexCollectionValidator)
+      expect(ret).to.deep.equal({
+        level1: {
+          'bad': { error: 'error', params: { value: [] } }
         }
       })
     })

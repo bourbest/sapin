@@ -35,7 +35,7 @@ export const collection = (validator, valueValidator) => {
   }
 
   // validator is either an array or an object when we reach this point
-  if (isArray(validator)) {
+  if (isArray(validator) || isFunction(validator)) {
     ret.__type = ValidatorTypes.collectionOfValues
   } else {
     ret.__type = ValidatorTypes.collectionOfObjects
