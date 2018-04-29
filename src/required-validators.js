@@ -1,9 +1,10 @@
 import {get, isArray} from 'lodash'
-import {Errors} from './common'
+import {Errors} from './errors'
+import { isEmptyValue } from './utils'
 
 // required validators
 export const required = ({value, config}) => {
-  return config.isEmptyValue(value) ? Errors.required : null
+  return isEmptyValue(value) ? Errors.required : null
 }
 
 export const requiredIfOtherFieldIsTrue = (otherFieldName) => {

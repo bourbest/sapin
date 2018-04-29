@@ -58,6 +58,7 @@
   "bugs": "https://github.com/bourbest/sapin/issues",
   "dependencies": {
     "babel-loader": "^7.1.4",
+    "date-fns": "^1.29.0",
     "webpack-cli": "^2.0.13"
   }
 }
