@@ -1,58 +1,15 @@
 import {expect} from 'chai'
 import {identity} from 'lodash'
-import { string, number, boolean, date, arrayOf, dictionary, PropertyValidator, ValidationType } from '../src/types'
+import { string, number, arrayOf, PropertyDefinition, ValueTypes } from '../src/types'
 import {required} from '../src/required-validators'
 import {isPositive} from '../src/numbers-validators'
-import SchemaValidator from '../src/SchemaValidator'
+import Schema from '../src/Schema'
 import { Errors } from '../src/errors'
+import {validate} from '../src/validate'
 
-describe('PropertyValidator', function () {
-  describe('constructor', function () {
-    it('throws the schema is null', function () {
-      const test = () => new SchemaValidator(null)
-      expect(test).to.throw('schema must be a valid schema object')
-    })
-
-    it('throws the schema is undefined', function () {
-      const test = () => new SchemaValidator()
-      expect(test).to.throw('schema must be a valid schema object')
-    })
-
-    it('throws the schema is not a valid object', function () {
-      const test = () => new SchemaValidator()
-      expect(test).to.throw('schema must be a valid schema object')
-    })
-
-    it('throws when a property is set to something other thant an object', function () {
-      const badSchema = {
-        test: 'no'
-      }
-      const test = () => new SchemaValidator(badSchema)
-      expect(test).to.throw('Expect an object or a type function (ex.: string, number) in schema at property test')
-    })
-
-    it('throws with full path name of the property that is set to something other thant an object', function () {
-      const badSchema = {
-        test: {
-          invalidProp: {
-            invalidChild: 44
-          }
-        }
-      }
-      const test = () => new SchemaValidator(badSchema)
-      expect(test).to.throw('Expect an object or a type function (ex.: string, number) in schema at property test.invalidProp.invalidChild')
-    })
-
-    it('accepts a property with functions returning a PropertyType', function () {
-      const validator = new SchemaValidator({
-        test: string
-      })
-      expect(validator.schema.test).to.deep.equal(string())
-    })
-  })
-
-  describe('validate (no collection)', function () {
-    const simpleValidator = new SchemaValidator({
+describe('validate', function () {
+  describe('(no collection)', function () {
+    const simpleValidator = new Schema({
       'name': string(required),
       'age': number
     })
@@ -62,7 +19,7 @@ describe('PropertyValidator', function () {
         name: 'Joe',
         age: '35'
       }
-      const ret = simpleValidator.validate(entity)
+      const ret = validate(entity, simpleValidator)
       expect(ret).to.equal(null)
     })
 
@@ -71,7 +28,7 @@ describe('PropertyValidator', function () {
         name: '',
         age: 'test'
       }
-      const ret = simpleValidator.validate(entity)
+      const ret = validate(entity, simpleValidator)
       expect(ret).to.deep.equal({
         name: Errors.required,
         age: Errors.isNumber
@@ -79,18 +36,36 @@ describe('PropertyValidator', function () {
     })
 
     it('can accept an attribute mapped to an array of validation function', function () {
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         'age': number([required, isPositive])
       })
       const entity = {
         age: '56'
       }
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.equal(null)
     })
 
+    it('can accept an attribute mapped to an instance of Schema', function () {
+      const addressSchema = new Schema({
+        city: string(required)
+      })
+      const schema = new Schema({
+        age: number([required, isPositive]),
+        address: addressSchema
+      })
+      const entity = {
+        age: '56',
+        address: {}
+      }
+      const ret = validate(entity, schema)
+      expect(ret).to.deep.equal({
+        address: { city: 'sapin.required' }
+      })
+    })
+
     it('return errors even when parent object is undefined', function () {
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         student: {
           name: {
             fr: string(required)
@@ -98,7 +73,7 @@ describe('PropertyValidator', function () {
         }
       })
       const entity = {}
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.deep.equal({
         student: {
           name: {
@@ -109,7 +84,7 @@ describe('PropertyValidator', function () {
     })
 
     it('return no errors when the whole structure is valid', function () {
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         student: {
           name: {
             fr: string(required)
@@ -123,29 +98,33 @@ describe('PropertyValidator', function () {
           }
         }
       }
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.equal(null)
     })
 
-    it('passes sibling and entity to validation function', function () {
+    it('passes sibling, params and entity to validation function', function () {
       let retSiblings = null
       let retEntity = null
+      let retParams = null
 
-      const sampleValidator = ({siblings, entity}) => {
+      const sampleValidator = ({siblings, entity, params}) => {
         retSiblings = siblings
         retEntity = entity
+        retParams = params
         return null
       }
 
-      const schema = new SchemaValidator({
+      const testParams = {id: 11}
+      const schema = new Schema({
         name: string(sampleValidator)
       })
 
       const entity = {name: 'test'}
 
-      schema.validate(entity)
+      validate(entity, schema, testParams)
       expect(retSiblings).to.equal(entity)
       expect(retEntity).to.equal(entity)
+      expect(retParams).to.equal(testParams)
     })
 
     it('passes siblings and entity to subObject validator function', function () {
@@ -155,7 +134,7 @@ describe('PropertyValidator', function () {
         return null
       }
 
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         addresses: {
           streetName: string([required, myCustomValidator])
         }
@@ -166,38 +145,64 @@ describe('PropertyValidator', function () {
         name: 'Joe',
         addresses: address
       }
-      schema.validate(entity)
+      validate(entity, schema)
 
       expect(receivedObject.value).to.equal(address.streetName)
       expect(receivedObject.siblings).to.equal(address)
       expect(receivedObject.entity).to.equal(entity)
     })
+
+    it('logUnknownPropertoes', function () {
+      const schema = new Schema({
+        addresses: {
+          streetName: string
+        }
+      })
+
+      const entity = {
+        name: 'Joe',
+        addresses: {
+          streetName: 'test',
+          civicNumber: '44'
+        }
+      }
+      const ret = validate(entity, schema, null, true)
+
+      expect(ret).to.deep.equal({
+        name: 'sapin.unknownProperty',
+        addresses: {
+          civicNumber: 'sapin.unknownProperty'
+        }
+      })
+    })
   })
 
-  describe('validate with collection', function () {
-    it('calls each validator function with the right siblings and entity when collectionOfObjects', function () {
+  describe('with collection', function () {
+    it('calls each validator function with the right siblings, params and entity when collectionOfObjects', function () {
       let receivedObject = null
       const myCustomValidator = (params) => {
         receivedObject = params
         return null
       }
 
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         addresses: arrayOf({
           streetName: string(myCustomValidator)
         })
       })
 
       const address = {streetName: 'test', civicNumber: '456'}
+      const testParams = {id: 1}
       const entity = {
         name: 'Joe',
         addresses: [address]
       }
-      schema.validate(entity)
+      validate(entity, schema, testParams)
 
       expect(receivedObject.value).to.equal(address.streetName)
       expect(receivedObject.siblings).to.equal(address)
       expect(receivedObject.entity).to.equal(entity)
+      expect(receivedObject.params).to.equal(testParams)
     })
 
     it('calls each validator function with the right siblings and entity when collectionOfValues', function () {
@@ -207,23 +212,26 @@ describe('PropertyValidator', function () {
         return null
       }
 
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         names: arrayOf(string(myCustomValidator))
       })
 
+      const testParams = {id: 55}
       const names = ['test']
       const entity = {
         names
       }
-      schema.validate(entity)
+
+      validate(entity, schema, testParams)
 
       expect(receivedObject.value).to.equal('test')
       expect(receivedObject.siblings).to.equal(names)
       expect(receivedObject.entity).to.equal(entity)
+      expect(receivedObject.params).to.equal(testParams)
     })
 
     it('returns null given an object with an array collection that respect all validations', function () {
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         name: string(required),
         addresses: arrayOf({
           streetName: string(required),
@@ -237,12 +245,12 @@ describe('PropertyValidator', function () {
           {streetName: 'test', civicNumber: '456'}
         ]
       }
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.equal(null)
     })
 
     it('returns an object with errors at the right path given a collectionOfObjects not respecting the schema', function () {
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         name: string(required),
         addresses: arrayOf({
           streetName: string(required),
@@ -257,7 +265,7 @@ describe('PropertyValidator', function () {
           {civicNumber: '456'}
         ]
       }
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.deep.equal({
         addresses: {
           '1': {
@@ -268,7 +276,7 @@ describe('PropertyValidator', function () {
     })
 
     it('returns an object with errors at the right path given a collectionOfValues not respecting the schema', function () {
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         name: string(required),
         scores: arrayOf(number)
       })
@@ -277,7 +285,7 @@ describe('PropertyValidator', function () {
         name: 'Joe',
         scores: ['sdfasd', '45', 'dsfsd']
       }
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.deep.equal({
         scores: {
           '0': Errors.isNumber,
@@ -287,7 +295,7 @@ describe('PropertyValidator', function () {
     })
 
     it('set the error at _error for collection that fail the collectionValidator functions', function () {
-      const schema = new SchemaValidator({
+      const schema = new Schema({
         name: string(required),
         scores: arrayOf(number)
       })
@@ -296,7 +304,7 @@ describe('PropertyValidator', function () {
         name: 'Joe',
         scores: {} // object instead of array
       }
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.deep.equal({
         scores: {
           _error: Errors.isOfTypeArray
@@ -306,29 +314,29 @@ describe('PropertyValidator', function () {
   })
 
   describe('validate with custom type', function () {
-    it('accepts a PropertyValidator with a function as validators', function () {
-      const propValidator = new PropertyValidator(ValidationType.value, identity, required)
-      const schema = new SchemaValidator({
+    it('accepts a PropertyDefinition with a function as validators', function () {
+      const propValidator = new PropertyDefinition(ValueTypes.value, identity, required)
+      const schema = new Schema({
         name: propValidator
       })
 
       const entity = {
         name: 'Joe'
       }
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.equal(null)
     })
 
-    it('accepts a PropertyValidator with no collectionValidator', function () {
-      const propValidator = new PropertyValidator(ValidationType.collectionOfValues, identity, string())
-      const schema = new SchemaValidator({
+    it('accepts a PropertyDefinition with no collectionValidator', function () {
+      const propValidator = new PropertyDefinition(ValueTypes.collectionOfValues, identity, string())
+      const schema = new Schema({
         names: propValidator
       })
 
       const entity = {
         names: ['Joe']
       }
-      const ret = schema.validate(entity)
+      const ret = validate(entity, schema)
       expect(ret).to.equal(null)
     })
   })

@@ -4,40 +4,39 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/abca65344775ccc8b3bf/maintainability)](https://codeclimate.com/github/bourbest/sapin/maintainability)
 
 # sapin
-Sapin is a library that allows to easily create a _Validator object_ using a declarative style. The _validate_ function
-can then be used to validate an object against the validator. The function will store each error
-encountered in a new object at the same path as the property that had the error. While it can be used to easily
-validate forms connected with [redux-form](https://redux-form.com), it can validate any structure.
+Sapin is a library that allows to easily create a Schema using a declarative style. This schema can then :
+* be be validated with the _validate_ function, will store each error encountered in a new object at the same path as the property that had the error. While it can be used to easily validate forms connected with [redux-form](https://redux-form.com), it can validate any structure.
+* be transformed with the _transform_ function, to convert each of the object's property to the right type.
 
 ## Features
 * Provides functions for most basic field validations (no date validations, use your own formats and libs)
-* Supports the validation of attributes that are arrays of values, array of objects, map of objects, map of values
+* Support validation of inner structures
+* Supports the validation of attributes that are arrays of values, array of objects, dictionary of objects, dictionary of values
 * Validations on an object property can be applied to its members, on the whole object or on both
 * Allows to easily add your own custom validator functions
-* Supports multiple languages by allowing you to provide your own formatError function
 
 # Example
 ```js
 // Load validators functions
-import {validate, required, collection, isInteger} from 'sapin'
-import {isPhone} from 'myCustomValidators'
+import {Schema, validate, required, integer, maxLength, string, arrayOf, isPositive} from 'sapin'
+import {isPhone, requiresAtLeastOne} from 'myCustomValidators'
 
-// create a validator object
-const UserValidator = {
-  firstName: [required],
-  lastName: [required],
-  age: [required, isInteger],
-  phones: collection([isPhone]),
+// create a Schema
+const userSchema = new Schema({
+  firstName: string(required),
+  lastName: string(required),
+  age: integer(isPositive),
+  phones: arrayOf(string(isPhone), requiresAtLeastOne),
   address: {
-    civicNumber: [required],
-    streetName: [required],
-    city: [required]
+    civicNumber: string(required),
+    streetName: string([required, maxLength(50)]),
+    city: string
   }
-}
+})
 
 // validation function that is called when validating your form or object
-export const validateUserForm = (values) => {
-  return validate(values, UserValidator)
+export const validateUserForm = (values, props) => {
+  return validate(values, userSchema, props)
 }
 
 ...
@@ -84,4 +83,5 @@ sapin is released under the [MIT license](https://github.com/bourbest/sapin/blob
 
 ## Why sapin?
 While there are many libraries out there that allow to achieve the same goal, Sapin allows to describe complex structures
-in a really simple manner. It is also really thin (10k) and exposes ES6 modules so that you can only grab what you need.
+in a really simple manner. You can use the schema to validate and/or transform the data before sending it to a server or database.
+

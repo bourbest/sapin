@@ -24,12 +24,12 @@ describe('isInteger', function () {
   testThatValidatorHandlesValidAndInvalidValue('isInteger', isInteger, getNumber, '0', 'yo!')
 
   it('returns null when given 0', function () {
-    const ret = isInteger({value: 0, transform: getNumber})
+    const ret = isInteger({value: 0, getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns Error.isInteger when given a decimal number', function () {
-    const ret = isInteger({value: '1.5', transform: getNumber})
+    const ret = isInteger({value: '1.5', getter: getNumber})
     expect(ret).to.equal(Errors.isInteger)
   })
 })
@@ -39,22 +39,22 @@ describe('isPositive', function () {
   testThatValidatorHandlesValidAndInvalidValue('isPositive', isPositive, getNumber, '0', '-1')
 
   it('returns null when given a value greater than 0', function () {
-    const ret = isPositive({value: '1', transform: getNumber})
+    const ret = isPositive({value: '1', getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given a decimal value greater than 0', function () {
-    const ret = isPositive({value: '0.0000001', transform: getNumber})
+    const ret = isPositive({value: '0.0000001', getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns Errors.isPositive when given a negative number', function () {
-    const ret = isPositive({value: '-0.1', transform: getNumber})
+    const ret = isPositive({value: '-0.1', getter: getNumber})
     expect(ret).to.equal(Errors.isPositive)
   })
 
   it('returns null when given text', function () {
-    const ret = isPositive({value: 'yo', transform: getNumber})
+    const ret = isPositive({value: 'yo', getter: getNumber})
     expect(ret).to.be.null
   })
 })
@@ -64,27 +64,27 @@ describe('isNegative', function () {
   testThatValidatorHandlesValidAndInvalidValue('isNegative', isNegative, getNumber, '-1', '0')
 
   it('returns null when given a decimal value less than 0', function () {
-    const ret = isNegative({value: '-0.0000001', transform: getNumber})
+    const ret = isNegative({value: '-0.0000001', getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given a decimal value less than 0 using coma', function () {
-    const ret = isNegative({value: '-0,0000001', transform: getNumber})
+    const ret = isNegative({value: '-0,0000001', getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given text', function () {
-    const ret = isNegative({value: 'yo', transform: getNumber})
+    const ret = isNegative({value: 'yo', getter: getNumber})
     expect(ret).to.be.null
   })
 
   it('returns Errors.isNegative when given 0', function () {
-    const ret = isNegative({value: '0', transform: getNumber})
+    const ret = isNegative({value: '0', getter: getNumber})
     expect(ret).to.equal(Errors.isNegative)
   })
 
   it('returns Errors.isNegative when given a positive number', function () {
-    const ret = isNegative({value: '0.1', transform: getNumber})
+    const ret = isNegative({value: '0.1', getter: getNumber})
     expect(ret).to.equal(Errors.isNegative)
   })
 })
@@ -93,12 +93,12 @@ const testNumberComparerValidatorFunction = (validatorFunction, validatorName, v
   testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(validatorFunction, getNumber)
 
   it('returns null when given a valid value', function () {
-    const ret = validatorFunction({value: validValue, transform: getNumber})
+    const ret = validatorFunction({value: validValue, getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it(`returns Error.${validatorName} when comparison fails`, function () {
-    const ret = validatorFunction({value: invalidValue, transform: getNumber})
+    const ret = validatorFunction({value: invalidValue, getter: getNumber})
     expect(ret).to.deep.equal({
       error: Errors[validatorName],
       params: {value: invalidValue, threshold: 3}
@@ -106,7 +106,7 @@ const testNumberComparerValidatorFunction = (validatorFunction, validatorName, v
   })
 
   it('returns null when given text', function () {
-    const ret = validatorFunction({value: 'yo', transform: getNumber})
+    const ret = validatorFunction({value: 'yo', getter: getNumber})
     expect(ret).to.be.null
   })
 }
@@ -130,12 +130,12 @@ describe('isLte', function () {
 const testThatValidatorHandlesBadNumberCorrectly = (makeValidator) => {
   const validate = makeValidator('otherField', 'fieldname')
   it('returns null when otherField is an invalid number', function () {
-    const ret = validate({value: '5', siblings: {otherField: 'sdfs'}, transform: getNumber})
+    const ret = validate({value: '5', siblings: {otherField: 'sdfs'}, getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns null when a value is not a number', function () {
-    const ret = validate({value: 'yo', siblings: {otherField: 'dfsd'}, transform: getNumber})
+    const ret = validate({value: 'yo', siblings: {otherField: 'dfsd'}, getter: getNumber})
     expect(ret).to.be.null
   })
 }
@@ -147,7 +147,7 @@ describe('isGtField', function () {
 
   it('returns Errors.isGtField when given 0 and otherField is 0', function () {
     const validate = isGtField('otherField', 'age')
-    const ret = validate({value: '0', siblings: {otherField: '0'}, transform: getNumber})
+    const ret = validate({value: '0', siblings: {otherField: '0'}, getter: getNumber})
     expect(ret).to.deep.equal({
       error: Errors.isGtField,
       params: {
@@ -160,7 +160,7 @@ describe('isGtField', function () {
 
   it('returns null when given 0 and otherField is negative', function () {
     const validate = isGtField('otherField')
-    const ret = validate({value: '0', siblings: {otherField: '-1'}, transform: getNumber})
+    const ret = validate({value: '0', siblings: {otherField: '-1'}, getter: getNumber})
     expect(ret).to.equal(null)
   })
 })
@@ -172,19 +172,19 @@ describe('isGteToField', function () {
 
   it('returns null when given 0 and otherField is 0', function () {
     const validate = isGteToField('otherField')
-    const ret = validate({value: '0', siblings: {otherField: '0'}, transform: getNumber})
+    const ret = validate({value: '0', siblings: {otherField: '0'}, getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given 0 and otherField is negative', function () {
     const validate = isGteToField('otherField')
-    const ret = validate({value: '0', siblings: {otherField: '-1'}, transform: getNumber})
+    const ret = validate({value: '0', siblings: {otherField: '-1'}, getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns Errors.isGteToField when a value less than other field', function () {
     const validate = isGteToField('otherField', 'age')
-    const ret = validate({value: '-1', siblings: {otherField: '0'}, transform: getNumber})
+    const ret = validate({value: '-1', siblings: {otherField: '0'}, getter: getNumber})
     expect(ret).to.deep.equal({
       error: Errors.isGteToField,
       params: {
@@ -203,7 +203,7 @@ describe('isLtField', function () {
 
   it('returns Errors.isLtField when given 0 and otherField is 0', function () {
     const validate = isLtField('otherField', 'age')
-    const ret = validate({value: '0', siblings: {otherField: '0'}, transform: getNumber})
+    const ret = validate({value: '0', siblings: {otherField: '0'}, getter: getNumber})
     expect(ret).to.deep.equal({
       error: Errors.isLtField,
       params: {
@@ -216,7 +216,7 @@ describe('isLtField', function () {
 
   it('returns null when given 0 and otherField is positive', function () {
     const validate = isLtField('otherField')
-    const ret = validate({value: '0', siblings: {otherField: '1'}, transform: getNumber})
+    const ret = validate({value: '0', siblings: {otherField: '1'}, getter: getNumber})
     expect(ret).to.equal(null)
   })
 })
@@ -228,19 +228,19 @@ describe('isLteToField', function () {
 
   it('returns null when given 0 and otherField is 0', function () {
     const validate = isLteToField('otherField')
-    const ret = validate({value: '0', siblings: {otherField: '0'}, transform: getNumber})
+    const ret = validate({value: '0', siblings: {otherField: '0'}, getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given 0 and otherField is positive', function () {
     const validate = isLteToField('otherField')
-    const ret = validate({value: '0', siblings: {otherField: '1'}, transform: getNumber})
+    const ret = validate({value: '0', siblings: {otherField: '1'}, getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns Errors.isLteToField with params when a value greater than other field', function () {
     const validate = isLteToField('otherField', 'age')
-    const ret = validate({value: '1', siblings: {otherField: '0'}, transform: getNumber})
+    const ret = validate({value: '1', siblings: {otherField: '0'}, getter: getNumber})
     expect(ret).to.deep.equal({
       error: Errors.isLteToField,
       params: {
@@ -257,19 +257,19 @@ describe('withinRange', function () {
 
   it('returns null when given value equal to minValue', function () {
     const validate = withinRange(0, 5)
-    const ret = validate({value: '0', transform: getNumber})
+    const ret = validate({value: '0', getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns null when given value equal to maxValue', function () {
     const validate = withinRange(0, 5)
-    const ret = validate({value: '5', transform: getNumber})
+    const ret = validate({value: '5', getter: getNumber})
     expect(ret).to.equal(null)
   })
 
   it('returns Errors.numberWithingRange when given value outside range', function () {
     const validate = withinRange(0, 5)
-    const ret = validate({value: '5.1', transform: getNumber})
+    const ret = validate({value: '5.1', getter: getNumber})
     expect(ret).to.deep.equal({
       error: Errors.withinRange,
       params: {
@@ -282,7 +282,7 @@ describe('withinRange', function () {
 
   it('returns null when given invalid number', function () {
     const validate = withinRange(0, 5)
-    const ret = validate({value: 'yo', transform: getNumber})
+    const ret = validate({value: 'yo', getter: getNumber})
     expect(ret).to.be.null
   })
 

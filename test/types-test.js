@@ -1,65 +1,71 @@
 import {expect} from 'chai'
 import {getString, getTrimmedString, getNumber, getFriendlyNumber} from '../src/getters'
 import {isNumber, isOfTypeBool, isOfTypeArray, isOfTypeDate, isOfTypeObject, isOfTypeString} from '../src/type-validators'
-import {ValidationType, string, number, boolean, date, arrayOf, dictionary, PropertyValidator} from '../src/types'
+import {ValueTypes, string, number, boolean, date, arrayOf, dictionary, PropertyDefinition} from '../src/types'
+import Schema from '../src/Schema'
 
 function someFunction () {}
 
-describe('PropertyValidator', function () {
-  it('throws when validationType is invalid', function () {
-    const test = () => new PropertyValidator('fsdfs', someFunction)
-    expect(test).to.throw()
+describe('PropertyDefinition', function () {
+  it('throws when valueType is invalid', function () {
+    const test = () => new PropertyDefinition('fsdfs', someFunction)
+    expect(test).to.throw('valueType must be one of the values defined in ValueTypes')
   })
 
-  it('throws when typeValidation is null', function () {
-    const test = () => new PropertyValidator('value', null)
-    expect(test).to.throw()
+  it('throws when getter is null', function () {
+    const test = () => new PropertyDefinition('value', null)
+    expect(test).to.throw('getter must be a function')
   })
 
-  it('throws when typeValidation is not a function', function () {
-    const test = () => new PropertyValidator('value', 456)
-    expect(test).to.throw()
+  it('throws when getter is not a function', function () {
+    const test = () => new PropertyDefinition('value', 456)
+    expect(test).to.throw('getter must be a function')
   })
 
   it('throws when given an invalid array of functions as validators', function () {
-    const test = () => new PropertyValidator('value', someFunction, [someFunction, 4534])
-    expect(test).to.throw()
+    const test = () => new PropertyDefinition('value', someFunction, [someFunction, 4534])
+    expect(test).to.throw('validators must be a function or an array of functions')
   })
 
   it('throws when given something other dans a function or an array of functions as validators', function () {
-    const test = () => new PropertyValidator('value', someFunction, 4534)
-    expect(test).to.throw()
+    const test = () => new PropertyDefinition('value', someFunction, 4534)
+    expect(test).to.throw('validators must be a function or an array of functions')
   })
 
   it('does not throw when given nothing as validators', function () {
-    const x = new PropertyValidator('value', someFunction)
+    const x = new PropertyDefinition('value', someFunction)
   })
 
   it('sets the typeValidator as the first validator when given none', function () {
-    const res = new PropertyValidator('value', someFunction, null, isOfTypeString)
+    const res = new PropertyDefinition('value', someFunction, null, isOfTypeString)
     expect(res.validators[0]).to.equal(isOfTypeString)
   })
 
   it('sets a typeValidator as the first validator when given an array of validators', function () {
-    const res = new PropertyValidator('value', someFunction, [someFunction], isOfTypeString)
+    const res = new PropertyDefinition('value', someFunction, [someFunction], isOfTypeString)
     expect(res.validators[0]).to.equal(isOfTypeString)
     expect(res.validators[1]).to.equal(someFunction)
   })
 
   it('sets a typeValidator as the first validator when given an a validator function', function () {
-    const res = new PropertyValidator('value', someFunction, someFunction, isOfTypeString)
+    const res = new PropertyDefinition('value', someFunction, someFunction, isOfTypeString)
     expect(res.validators[0]).to.equal(isOfTypeString)
     expect(res.validators[1]).to.equal(someFunction)
   })
 
   it('throws when the typeValidator is not a function', function () {
-    const test = function () { new PropertyValidator('value', someFunction, null, 65465) }
-    expect(test).to.throw()
+    const test = function () { new PropertyDefinition('value', someFunction, null, 65465) }
+    expect(test).to.throw('typeValidator is optional but must be a Validation function if given')
   })
 
-  it('doesnt throw when the typeValidator is undefined', function () {
-    const propValidator = new PropertyValidator('value', someFunction)
+  it('does not throw when the typeValidator is undefined', function () {
+    const propValidator = new PropertyDefinition('value', someFunction)
     expect(propValidator.validators).to.deep.equal([])
+  })
+
+  it('throws when transform is not a function', function () {
+    const test = function () { new PropertyDefinition('value', someFunction, null, null, 65465) }
+    expect(test).to.throw('transform must be a function')
   })
 })
 
@@ -83,7 +89,7 @@ describe('string', function () {
 function itConstructsAValidPropertyType (typeFunction, typeValidation) {
   it('constructs a valid PropertyType', function () {
     const propValidator = typeFunction()
-    expect(propValidator instanceof PropertyValidator).to.be.true
+    expect(propValidator instanceof PropertyDefinition).to.be.true
     expect(propValidator.validators[0]).to.equal(typeValidation)
   })
 }
@@ -135,14 +141,14 @@ function itSetsTypeValidatorAsFirstCollectionValidator (type, typeValidator) {
 }
 
 function itSetsTheCorrectValidationType (type) {
-  it('sets the validationType to collectionOfValues when given a PropertyValidator', function () {
+  it('sets the valueType to collectionOfValues when given a PropertyDefinition', function () {
     const res = type(string())
-    expect(res.validationType).to.equal(ValidationType.collectionOfValues)
+    expect(res.valueType).to.equal(ValueTypes.collectionOfValues)
   })
 
-  it('sets the validationType to collectionOfObjects when given an object', function () {
+  it('sets the valueType to collectionOfObjects when given an object', function () {
     const res = type({})
-    expect(res.validationType).to.equal(ValidationType.collectionOfObjects)
+    expect(res.valueType).to.equal(ValueTypes.collectionOfObjects)
   })
 
   it('it accepts a function that returns a PropertyType', function () {
@@ -151,18 +157,32 @@ function itSetsTheCorrectValidationType (type) {
     expect(res.validators).to.deep.equal(propValidator)
   })
 
-  it('throws when given a non object or non PropertyValidator object', function () {
+  it('throws when given a non object or non PropertyDefinition object', function () {
     const test = () => type(someFunction)
     expect(test).to.throw(TypeError)
+  })
+}
+
+function itSupportsSchemaAsPropertyDefinition (type) {
+  it('supports Schema as PropertyDefinition', function () {
+    const addressSchema = new Schema({
+      city: string
+    })
+    const test = new Schema({
+      addresses: type(addressSchema)
+    })
+    expect(test.schema.addresses.validators).to.equal(addressSchema.schema)
   })
 }
 
 describe('arrayOf', function () {
   itSetsTypeValidatorAsFirstCollectionValidator(arrayOf, isOfTypeArray)
   itSetsTheCorrectValidationType(arrayOf)
+  itSupportsSchemaAsPropertyDefinition(arrayOf)
 })
 
 describe('dictionary', function () {
   itSetsTypeValidatorAsFirstCollectionValidator(dictionary, isOfTypeObject)
   itSetsTheCorrectValidationType(dictionary)
+  itSupportsSchemaAsPropertyDefinition(dictionary)
 })

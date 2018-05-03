@@ -1,33 +1,42 @@
-import {isArray, isObject} from 'lodash'
-import {PropertyValidator, ValidationType} from './types'
+import {isArray} from 'lodash'
+import {isPureObject} from './utils'
+import {PropertyDefinition, ValueTypes} from './types'
 import {isOfTypeArray, isOfTypeObject} from './type-validators'
 
-const transformWithValidator = (propValue, propValidator) => {
-  if (propValidator.validationType === ValidationType.value) {
-    return propValidator.get(propValue, propValidator.options)
-  } else if (isArray(propValue) && propValidator.valueValidator === isOfTypeArray) {
-    const valueValidator = propValidator.validators
-    return propValue.map(value => valueValidator.get(value, valueValidator.options))
-  } else if (isObject(propValue) && propValidator.valueValidator === isOfTypeObject) {
-    return transform(propValue, propValidator.validators)
+const transformWithPropDefinition = (propValue, propDefinition) => {
+  if (propDefinition.valueType === ValueTypes.value) {
+    return propDefinition.transform(propValue)
+  } else if (isArray(propValue) && propDefinition.collectionValidator.indexOf(isOfTypeArray) > -1) {
+    const valueValidator = propDefinition.validators
+    return propValue.map(value => valueValidator.transform(value))
+  } else if (isPureObject(propValue) && propDefinition.collectionValidator.indexOf(isOfTypeObject) > -1) {
+    const ret = {}
+    for (let idx in propValue) {
+      ret[idx] = transformObject(propValue[idx], propDefinition.validators)
+    }
+    return ret
   }
   return propValue
 }
 
-const transform = (entity, schema) => {
+function transformObject (object, schema) {
   const ret = {}
-  for (let propName in entity) {
-    const propValue = entity[propName]
-    const propValidator = schema[propName]
-    if (propValidator instanceof PropertyValidator) {
-      ret[propName] = transformWithValidator(propValue, propValidator)
-    } else if (propValue && propValidator) {
-      ret[propName] = transform(propValue, propValidator)
+  for (let propName in object) {
+    const propValue = object[propName]
+    const propDefinition = schema[propName]
+    if (propDefinition instanceof PropertyDefinition) {
+      ret[propName] = transformWithPropDefinition(propValue, propDefinition)
+    } else if (propValue && propDefinition) {
+      ret[propName] = transformObject(propValue, propDefinition)
     } else {
       ret[propName] = propValue
     }
   }
   return ret
+}
+
+const transform = (entity, schemaValidator) => {
+  return transformObject(entity, schemaValidator.schema)
 }
 
 export default transform

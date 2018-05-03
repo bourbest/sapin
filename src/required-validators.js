@@ -3,7 +3,7 @@ import {Errors} from './errors'
 import { isEmptyValue } from './utils'
 
 // required validators
-export const required = ({value, config}) => {
+export const required = ({value}) => {
   return isEmptyValue(value) ? Errors.required : null
 }
 

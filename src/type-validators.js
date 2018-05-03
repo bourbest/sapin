@@ -17,8 +17,8 @@ export const isOfTypeObject = ({value}) => {
   return null
 }
 
-export const isNumber = ({value, transform}) => {
-  return isNaN(transform(value)) ? Errors.isNumber : null
+export const isNumber = ({value, getter}) => {
+  return isNaN(getter(value)) ? Errors.isNumber : null
 }
 
 export const isOfTypeBool = ({value}) => {
@@ -31,7 +31,7 @@ export const isOfTypeString = ({value}) => {
   return null
 }
 
-export const isOfTypeDate = ({value, transform}) => {
-  if (!isEmptyValue(value) && !isValid(transform(value))) return Errors.isOfTypeDate
+export const isOfTypeDate = ({value, getter}) => {
+  if (!isEmptyValue(value) && !isValid(getter(value))) return Errors.isOfTypeDate
   return null
 }

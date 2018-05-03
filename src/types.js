@@ -2,8 +2,9 @@ import {identity, isArray, isFunction, every, isNil} from 'lodash'
 import { getString, getNumber, getDate, getTrimmedString, getFriendlyNumber } from './getters'
 import {isOfTypeArray, isOfTypeBool, isOfTypeDate, isNumber, isOfTypeObject, isOfTypeString} from './type-validators'
 import {isPureObject} from './utils'
+import Schema from './Schema'
 
-export const ValidationType = {
+export const ValueTypes = {
   value: 'value',
   collectionOfValues: 'collectionOfValues',
   collectionOfObjects: 'collectionOfObjects'
@@ -13,7 +14,7 @@ const validateValidators = (validationType, validators, argumentName = 'validato
   let valid = false
   if (isNil(validators)) {
     valid = true
-  } else if (validationType === ValidationType.value) {
+  } else if (validationType === ValueTypes.value) {
     if (isArray(validators)) {
       valid = every(validators, isFunction)
     } else {
@@ -38,31 +39,40 @@ function addTypeValidation (validators, typeValidator) {
 }
 
 function validateValidationType (validationType) {
-  if (!ValidationType[validationType]) {
-    throw new TypeError('validationType must be one of the values defined in ValidationType')
+  if (!ValueTypes[validationType]) {
+    throw new TypeError('valueType must be one of the values defined in ValueTypes')
+  }
+}
+
+function validateGetter (getter) {
+  if (isNil(getter) || !isFunction(getter)) {
+    throw new TypeError('getter must be a function')
   }
 }
 
 function validateTransform (transform) {
-  if (isNil(transform) || !isFunction(transform)) {
+  if (!isNil(transform) && !isFunction(transform)) {
     throw new TypeError('transform must be a function')
   }
 }
 
 function validateTypeValidator (typeValidator) {
   if (!isNil(typeValidator) && !isFunction(typeValidator)) {
-    throw new TypeError('typeValidator is optional but must be a Validation function is given')
+    throw new TypeError('typeValidator is optional but must be a Validation function if given')
   }
 }
 
-export function PropertyValidator (validationType, transform, validators = [], typeValidator, collectionValidator = null) {
-  validateValidationType(validationType)
-  validateTransform(transform)
-  validateValidators(validationType, validators)
+export function PropertyDefinition (valueType, getter, validators = [], typeValidator = null, transform = null, collectionValidator = null) {
+  validateValidationType(valueType)
+  validateGetter(getter)
+  validateValidators(valueType, validators)
   validateTypeValidator(typeValidator)
-  validateValidators(ValidationType.value, collectionValidator, 'collectionValidator')
-  this.validationType = validationType
-  this.transform = transform
+  validateTransform(transform)
+  validateValidators(ValueTypes.value, collectionValidator, 'collectionValidator')
+
+  this.valueType = valueType
+  this.getter = getter
+  this.transform = transform || getter
   if (typeValidator) {
     this.validators = addTypeValidation(validators, typeValidator)
   } else {
@@ -73,41 +83,43 @@ export function PropertyValidator (validationType, transform, validators = [], t
 
 export const string = (validators, options) => {
   const noTrim = options && options.useTrim === false
-  const transform = noTrim ? getString : getTrimmedString
-  return new PropertyValidator(ValidationType.value, transform, validators, isOfTypeString)
+  const getter = noTrim ? getString : getTrimmedString
+  return new PropertyDefinition(ValueTypes.value, getter, validators, isOfTypeString)
 }
 
 export const number = (validators, options) => {
   const noReplace = options && options.replaceComa === false
-  const transform = noReplace ? getNumber : getFriendlyNumber
-  return new PropertyValidator(ValidationType.value, transform, validators, isNumber)
+  const getter = noReplace ? getNumber : getFriendlyNumber
+  return new PropertyDefinition(ValueTypes.value, getter, validators, isNumber)
 }
 
 export const date = (validators) => {
-  return new PropertyValidator(ValidationType.value, getDate, validators, isOfTypeDate)
+  return new PropertyDefinition(ValueTypes.value, getDate, validators, isOfTypeDate)
 }
 
 export const boolean = (validators) => {
-  return new PropertyValidator(ValidationType.value, identity, validators, isOfTypeBool)
+  return new PropertyDefinition(ValueTypes.value, identity, validators, isOfTypeBool)
 }
 
 const getCollectionType = (validators) => {
-  if (validators instanceof PropertyValidator) {
-    return ValidationType.collectionOfValues
+  if (validators instanceof PropertyDefinition) {
+    return ValueTypes.collectionOfValues
   } else if (isPureObject(validators)) {
-    return ValidationType.collectionOfObjects
+    return ValueTypes.collectionOfObjects
   }
   throw new TypeError('expect a type (ex.: string, number, etc.) or an object the expected properties')
 }
 
 function makeCollection (validators, collectionValidator, typeValidation) {
-  validateValidators(ValidationType.value, collectionValidator, 'collectionValidator')
+  validateValidators(ValueTypes.value, collectionValidator, 'collectionValidator')
   if (isFunction(validators)) {
     validators = validators()
+  } else if (validators instanceof Schema) {
+    validators = validators.schema
   }
   const type = getCollectionType(validators)
   collectionValidator = addTypeValidation(collectionValidator, typeValidation)
-  return new PropertyValidator(type, identity, validators, null, collectionValidator)
+  return new PropertyDefinition(type, identity, validators, null, null, collectionValidator)
 }
 
 export const arrayOf = (validators, collectionValidator = []) => {
