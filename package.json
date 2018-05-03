@@ -19,7 +19,8 @@
     "build": "npm run dev && npm run prod"
   },
   "peerDependencies": {
-    "lodash": "^4.17.5"
+    "lodash": "^4.17.5",
+    "date-fns": "^1.29.0"
   },
   "standard": {
     "env": [
@@ -57,7 +58,5 @@
   ],
   "bugs": "https://github.com/bourbest/sapin/issues",
   "dependencies": {
-    "date-fns": "^1.29.0",
-    "lodash": "^4.17.10"
   }
 }
