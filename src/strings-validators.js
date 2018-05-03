@@ -1,6 +1,6 @@
 import {Errors} from './common'
 
-const EMAIL_REGEX = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/
+const EMAIL_REGEX = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i
 export const isEmail = ({value, config}) => {
   if (config.isEmptyValue(value)) return null
   return !EMAIL_REGEX.test(value) ? Errors.isEmail : null
