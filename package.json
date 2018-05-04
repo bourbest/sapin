@@ -56,5 +56,8 @@
     "validate"
   ],
   "bugs": "https://github.com/bourbest/sapin/issues",
-  "dependencies": {}
+  "dependencies": {
+    "lodash": "^4.17.5",
+    "date-fns": "^1.29.0"
+  }
 }
