@@ -1,10 +1,8 @@
 import {expect} from 'chai'
-import {identity} from 'lodash'
-import { string, number, arrayOf, PropertyDefinition, ValueTypes } from '../src/types'
+import {string} from '../src/types'
 import {required} from '../src/required-validators'
-import {isPositive} from '../src/numbers-validators'
 import Schema from '../src/Schema'
-import { Errors } from '../src/errors'
+import {getString} from '../src/getters'
 
 describe('Schema', function () {
   it('throws the schema is null', function () {
@@ -47,5 +45,24 @@ describe('Schema', function () {
       test: string
     })
     expect(validator.schema.test).to.deep.equal(string())
+  })
+
+  it('supports noType property', function () {
+    const validator = new Schema({
+      test: required,
+      test2: [required, required]
+    }, true)
+    expect(validator.schema.test.validators).to.deep.equal(required)
+    expect(validator.schema.test.getter).to.deep.equal(getString)
+    expect(validator.schema.test2.validators).to.deep.equal([required, required])
+  })
+
+  it('noType property will throw on invalid property value', function () {
+    const test = () => {
+      const validator = new Schema({
+        test: 23423
+      }, true)
+    }
+    expect(test).to.throw('Expect a collection or validator at property test')
   })
 })
