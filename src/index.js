@@ -1,36 +1,11 @@
-export {
-  isNumber,
-  isInteger,
-  isPositive,
-  isNegative,
-  isGt, isGte, isLt, isLte,
-  isGtField,
-  isGteToField,
-  isLtField,
-  isLteToField,
-  withinRange
-} from './numbers-validators'
-
-export {
-  required,
-  requiredIfOtherFieldIsTrue,
-  requiredIfOtherFieldIsFalse,
-  requiredIfOtherFieldEquals
-} from './required-validators'
-
-export {
-  createConfig,
-  noTrim
-} from './common'
-
-export {
-  minLength,
-  maxLength,
-  isEmail
-} from './strings-validators'
-
-export {collection} from './collections'
-
-export {
-  validate
-} from './validate'
+export {default as Schema} from './Schema'
+export {Errors} from './errors'
+export {getString, getFriendlyNumber, getTrimmedString, getDate, getNumber} from './getters'
+export {isNegative, isPositive, isGt, isGte, isGteToField, isGtField, isInteger, isLt, isLte, isLteToField, isLtField, withinRange} from './numbers-validators'
+export {required, requiredIfOtherFieldEquals, requiredIfOtherFieldIsFalse, requiredIfOtherFieldIsTrue} from './required-validators'
+export {minLength, maxLength, isEmail} from './strings-validators'
+export {transform} from './transform'
+export {isNumber, isOfTypeString, isOfTypeObject, isOfTypeDate, isOfTypeArray, isOfTypeBool} from './type-validators'
+export {isPureObject, isEmptyValue} from './utils'
+export {string, dictionary, boolean, arrayOf, date, number, PropertyDefinition, ValueTypes} from './types'
+export {validate} from './validate'

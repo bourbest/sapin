@@ -1,41 +1,91 @@
-import {isObject, isArray, isFunction, keys, omit} from 'lodash'
-import {defaultConfig} from './common'
-import {ValidatorRunner} from './validatorRunner'
+import {forEach, isArray, isEmpty} from 'lodash'
+import {PropertyDefinition, ValueTypes} from './types'
+import Schema from './Schema'
 
-const internalProps = ['__type', '__validator', '__valueValidator']
+const runFunctions = function (value, validations, getter, siblings, entity, params) {
+  let err = null
+  if (!isArray(validations)) {
+    validations = [validations]
+  }
+  for (let i = 0; !err && i < validations.length; i++) {
+    const validation = validations[i]
+    err = validation({value, getter, siblings, entity, params})
+  }
+  return err
+}
 
-const ensureArrayContainsOnlyFunctions = (validator, propName) => {
-  for (let i = 0; i < validator.length; i++) {
-    if (!isFunction(validator[i])) {
-      throw new Error(`validator definition at path ${propName} expects an array of functions. Item a index ${i} isn't one`)
+const validateCollectionOfObjects = function (objectsCollection, propertyValidator, entity, params, logUnknownProperties) {
+  const errors = {}
+
+  forEach(objectsCollection, (object, idx) => {
+    const err = validateObject(objectsCollection[idx], propertyValidator.validators, objectsCollection[idx], entity, params, logUnknownProperties)
+    if (err) {
+      errors[idx.toString()] = err
+    }
+  })
+  return isEmpty(errors) ? null : errors
+}
+
+const validateCollectionOfValues = function (valuesCollection, propDefinition, siblings, entity, params) {
+  const errors = {}
+  forEach(valuesCollection, (value, idx) => {
+    const valueToValidate = valuesCollection[idx]
+    const err = runFunctions(valueToValidate, propDefinition.validators.validators, propDefinition.validators.getter, valuesCollection, entity, params)
+    if (err) {
+      errors[idx.toString()] = err
+    }
+  })
+
+  return isEmpty(errors) ? null : errors
+}
+
+const executeValidator = function (propValue, propDefinition, siblings, entity, params, logUnknownProperties) {
+  if (propDefinition.valueType === ValueTypes.value) {
+    return runFunctions(propValue, propDefinition.validators, propDefinition.getter, siblings, entity, params)
+  } else {
+    // execute the value validation first
+    if (propDefinition.collectionValidator) {
+      const _error = runFunctions(propValue, propDefinition.collectionValidator, propDefinition.getter, siblings, entity, params)
+      if (_error) {
+        return {_error}
+      }
+    }
+
+    if (propDefinition.valueType === ValueTypes.collectionOfObjects) {
+      return validateCollectionOfObjects(propValue, propDefinition, entity, params, logUnknownProperties)
+    } else {
+      return validateCollectionOfValues(propValue, propDefinition, siblings, entity, params)
     }
   }
 }
-const ensureValidatorIsValid = (validator, propName) => {
-  if (isArray(validator)) {
-    ensureArrayContainsOnlyFunctions(validator, propName)
-  } else if (!isFunction(validator) && isObject(validator)) {
-    const propValidators = keys(omit(validator, internalProps))
-    propValidators.forEach(prop => {
-      const childPropName = `${propName}.${prop}`
-      ensureValidatorIsValid(validator[prop], childPropName)
-    })
-  } else if (!isFunction(validator)) {
-    throw new Error(`validator definition at path ${propName} must be an object, a function or an array of validator function`)
+
+const validateObject = function (object, schema, siblings, entity, params, logUnknownProperties) {
+  const errors = {}
+  for (let propName in schema) {
+    const propValue = object ? object[propName] : null
+    const propDefinition = schema[propName]
+    let propErrors
+    if (propDefinition instanceof PropertyDefinition) {
+      propErrors = executeValidator(propValue, propDefinition, siblings, entity, params, logUnknownProperties)
+    } else {
+      propErrors = validateObject(propValue, propDefinition, propValue, entity, params, logUnknownProperties)
+    }
+    if (propErrors) {
+      errors[propName] = propErrors
+    }
   }
+
+  if (logUnknownProperties) {
+    for (let propName in object) {
+      if (!schema[propName]) {
+        errors[propName] = 'sapin.unknownProperty'
+      }
+    }
+  }
+
+  return isEmpty(errors) ? null : errors
 }
 
-export const validate = (values, validator, config = null) => {
-  config = config || defaultConfig
-  if (process.env.NODE_ENV !== 'production') {
-    if (!isObject(validator)) {
-      throw new Error('validate second argument must be a validator object')
-    }
-    for (let prop in validator) {
-      ensureValidatorIsValid(validator[prop], prop)
-    }
-  }
-
-  const runner = new ValidatorRunner(values, validator, config)
-  return runner.run()
+export const validate = function (values, schema, params = null, logUnknownProperties = false) {
+  return validateObject(values, schema.schema, values, values, params, logUnknownProperties)
 }
