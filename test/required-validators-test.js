@@ -6,7 +6,9 @@ import {
   required,
   requiredIfOtherFieldIsTrue,
   requiredIfOtherFieldIsFalse,
-  requiredIfOtherFieldEquals
+  requiredIfOtherFieldEquals,
+  requiredIfOtherFieldIsEmpty,
+  requiredIfOtherFieldIsGiven
 } from '../src/required-validators'
 
 describe('required', function () {
@@ -154,5 +156,69 @@ describe('requiredIfOtherFieldEquals', function () {
     const validate = requiredIfOtherFieldEquals('otherField', 'test')
     const ret = validate({value: '', siblings: {otherField: 'test'}, transform: getString})
     expect(ret).to.equal(Errors.required)
+  })
+})
+
+describe('requiredIfOtherFieldIsEmpty', function () {
+  it('returns Error.required when other field value is undefined', function () {
+    const validate = requiredIfOtherFieldIsEmpty('otherField')
+    const ret = validate({value: null, siblings: {}, transform: getString})
+    expect(ret).to.equal(Errors.required)
+  })
+
+  it('returns Error.required when other field value is null', function () {
+    const validate = requiredIfOtherFieldIsEmpty('otherField')
+    const ret = validate({value: null, siblings: {otherField: null}, transform: getString})
+    expect(ret).to.equal(Errors.required)
+  })
+
+  it('returns Errors.required when other field value is empty string', function () {
+    const validate = requiredIfOtherFieldIsEmpty('otherField')
+    const ret = validate({value: null, siblings: {otherField: ''}, transform: getString})
+    expect(ret).to.equal(Errors.required)
+  })
+
+  it('returns null when other field value is given', function () {
+    const validate = requiredIfOtherFieldIsEmpty('otherField')
+    const ret = validate({value: null, siblings: {otherField: 'sdfsd'}, transform: getString})
+    expect(ret).to.equal(null)
+  })
+
+  it('returns null when given a value', function () {
+    const validate = requiredIfOtherFieldIsEmpty('otherField')
+    const ret = validate({value: 'yo', siblings: {otherField: null}, transform: getString})
+    expect(ret).to.equal(null)
+  })
+})
+
+describe('requiredIfOtherFieldIsGiven', function () {
+  it('returns null when other field value is undefined', function () {
+    const validate = requiredIfOtherFieldIsGiven('otherField')
+    const ret = validate({value: null, siblings: {}, transform: getString})
+    expect(ret).to.equal(null)
+  })
+
+  it('returns null when other field value is null', function () {
+    const validate = requiredIfOtherFieldIsGiven('otherField')
+    const ret = validate({value: null, siblings: {otherField: null}, transform: getString})
+    expect(ret).to.equal(null)
+  })
+
+  it('returns null when other field value is empty string', function () {
+    const validate = requiredIfOtherFieldIsGiven('otherField')
+    const ret = validate({value: null, siblings: {otherField: ''}, transform: getString})
+    expect(ret).to.equal(null)
+  })
+
+  it('returns Errors.required when other field value is given', function () {
+    const validate = requiredIfOtherFieldIsGiven('otherField')
+    const ret = validate({value: null, siblings: {otherField: 'sdfsd'}, transform: getString})
+    expect(ret).to.equal(Errors.required)
+  })
+
+  it('returns null when given a value', function () {
+    const validate = requiredIfOtherFieldIsGiven('otherField')
+    const ret = validate({value: 'yo', siblings: {otherField: null}, transform: getString})
+    expect(ret).to.equal(null)
   })
 })

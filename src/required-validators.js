@@ -39,3 +39,23 @@ export const requiredIfOtherFieldEquals = (otherFieldName, expectedFieldValue) =
     return null
   }
 }
+
+export const requiredIfOtherFieldIsEmpty = (otherFieldName) => {
+  return (params) => {
+    const otherFieldValue = get(params.siblings, otherFieldName, null)
+    if (isEmptyValue(otherFieldValue)) {
+      return required(params)
+    }
+    return null
+  }
+}
+
+export const requiredIfOtherFieldIsGiven = (otherFieldName) => {
+  return (params) => {
+    const otherFieldValue = get(params.siblings, otherFieldName, null)
+    if (!isEmptyValue(otherFieldValue)) {
+      return required(params)
+    }
+    return null
+  }
+}

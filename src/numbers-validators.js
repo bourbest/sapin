@@ -1,4 +1,4 @@
-import {isNil, gt, gte, lt, lte} from 'lodash'
+import {isNil, eq, gt, gte, lt, lte} from 'lodash'
 import {Errors} from './errors'
 import {isEmptyValue} from './utils'
 
@@ -75,6 +75,12 @@ export const isLte = (threshold) => {
 export const isLt = (threshold) => {
   return ({value, getter}) => {
     return compareToThreshold(value, lt, threshold, getter, Errors.isLt)
+  }
+}
+
+export const isEqualToField = (fieldName, fieldLabel) => {
+  return ({value, siblings, getter}) => {
+    return compareWithOtherField(value, fieldName, fieldLabel, siblings, getter, eq, Errors.isEqualToField)
   }
 }
 

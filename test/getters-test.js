@@ -4,7 +4,8 @@ import {
   getTrimmedString,
   getNumber,
   getFriendlyNumber,
-  getDate
+  getDate,
+  getBool
 } from '../src/getters'
 
 describe('getString', function () {
@@ -98,4 +99,32 @@ describe('getDate', function () {
     const res = getDate(date)
     expect(res).to.deep.equal(date)
   })
+})
+
+describe('getBool', function () {
+  it('returns null when given undefined', function () {
+    const res = getBool()
+    expect(res).to.be.null
+  })
+
+  it('returns value converted to bool when given "true" string', function () {
+    const res = getBool('true')
+    expect(res).to.equal(true)
+  })
+
+  it('returns value converted to bool when given true value', function () {
+    const res = getBool(true)
+    expect(res).to.equal(true)
+  })
+
+  it('returns value converted to bool when given "false" string', function () {
+    const res = getBool('false')
+    expect(res).to.equal(false)
+  })
+
+  it('returns value converted to bool when given false value', function () {
+    const res = getBool(false)
+    expect(res).to.equal(false)
+  })
+
 })

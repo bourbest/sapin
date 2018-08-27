@@ -59,13 +59,38 @@ describe('isOfTypeBool', function () {
     expect(ret).to.be.null
   })
 
+  it('returns null when given "false"', function () {
+    const ret = isOfTypeBool({value: 'false', getter: identity})
+    expect(ret).to.be.null
+  })
+
   it('returns null when given true', function () {
     const ret = isOfTypeBool({value: true, getter: identity})
     expect(ret).to.be.null
   })
 
-  it('returns an error when given a non boolean value', function () {
+  it('returns null when given "true"', function () {
+    const ret = isOfTypeBool({value: 'true', getter: identity})
+    expect(ret).to.be.null
+  })
+
+  it('returns null when given null', function () {
+    const ret = isOfTypeBool({value: null, getter: identity})
+    expect(ret).to.be.null
+  })
+
+  it('returns null when given null', function () {
+    const ret = isOfTypeBool({value: undefined, getter: identity})
+    expect(ret).to.be.null
+  })
+
+  it('returns null when given null', function () {
     const ret = isOfTypeBool({value: '', getter: identity})
+    expect(ret).to.be.null
+  })
+
+  it('returns an error when given a non boolean value', function () {
+    const ret = isOfTypeBool({value: 'ss', getter: identity})
     expect(ret).to.equal(Errors.isOfTypeBool)
   })
 })

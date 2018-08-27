@@ -22,7 +22,7 @@ export const isNumber = ({value, getter}) => {
 }
 
 export const isOfTypeBool = ({value}) => {
-  if (value === true || value === false) return null
+  if ([true, false, 'true', 'false', null, undefined, ''].includes(value)) return null
   return Errors.isOfTypeBool
 }
 

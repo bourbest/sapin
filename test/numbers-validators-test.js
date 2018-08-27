@@ -12,6 +12,7 @@ import {
   isPositive,
   isNegative,
   isGt, isGte, isLt, isLte,
+  isEqualToField,
   isGtField,
   isGteToField,
   isLtField,
@@ -139,6 +140,31 @@ const testThatValidatorHandlesBadNumberCorrectly = (makeValidator) => {
     expect(ret).to.be.null
   })
 }
+
+describe('isEqualToField', function () {
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isEqualToField('test', 'test'))
+  testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isEqualToField)
+  testThatValidatorHandlesBadNumberCorrectly(isEqualToField)
+
+  it('returns Errors.isEqualToField when given 0 and otherField is 1', function () {
+    const validate = isEqualToField('otherField', 'age')
+    const ret = validate({value: '0', siblings: {otherField: '1'}, getter: getNumber})
+    expect(ret).to.deep.equal({
+      error: Errors.isEqualToField,
+      params: {
+        value: '0',
+        otherFieldLabel: 'age',
+        otherFieldValue: 1
+      }
+    })
+  })
+
+  it('returns null when given 0 and otherField is 0', function () {
+    const validate = isEqualToField('otherField')
+    const ret = validate({value: '0', siblings: {otherField: '0'}, getter: getNumber})
+    expect(ret).to.equal(null)
+  })
+})
 
 describe('isGtField', function () {
   testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isGtField('test', 'test'))

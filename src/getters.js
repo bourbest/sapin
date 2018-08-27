@@ -28,3 +28,9 @@ export function getFriendlyNumber (value) {
 export const getDate = (value) => {
   return value ? new Date(value) : null
 }
+
+export const getBool = (value) => {
+  if (value === true || value === 'true') return true
+  if (value === false || value === 'false') return false
+  return null
+}

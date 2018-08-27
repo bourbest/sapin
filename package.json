@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/bourbest/sapin"
   },
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Create Schema validation and transformation using a declarative paradigm",
   "main": "./lib/sapin.min.js",
   "module": "./src/index.js",

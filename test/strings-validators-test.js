@@ -7,7 +7,8 @@ import {
 import {
   minLength,
   maxLength,
-  isEmail
+  isEmail,
+  oneOf
 } from '../src/strings-validators'
 
 describe('minLength', function () {
@@ -56,6 +57,35 @@ describe('isEmail', function () {
 
   it('returns null when given a value that matches the regex', function () {
     const ret = isEmail({value: 'test@sample.com', transform: getString})
+    expect(ret).to.equal(null)
+  })
+})
+
+describe('oneOf', function () {
+  testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(oneOf(['test']))
+
+  it('throws when given a non array', function () {
+    const validator = () => oneOf(12)
+    expect(validator).to.throw('Invalid domain array given to oneOf')
+  })
+
+  it('throws when given an empty array', function () {
+    const validator = () => oneOf([])
+    expect(validator).to.throw('Invalid domain array given to oneOf')
+  })
+
+  it('returns Errors.oneOf when given a value that do not match domain', function () {
+    const validator = oneOf(['test'])
+    const ret = validator({value: 'test1', transform: getString})
+    expect(ret).to.deep.equal({
+      error: Errors.oneOf,
+      params: {value: 'test1', domain: ['test']}
+    })
+  })
+
+  it('returns null when given a value that matches the domain', function () {
+    const validator = oneOf(['test'])
+    const ret = validator({value: 'test', transform: getString})
     expect(ret).to.equal(null)
   })
 })

@@ -1,3 +1,4 @@
+import {isArray} from 'lodash'
 import {Errors} from './errors'
 import {isEmptyValue} from './utils'
 
@@ -22,6 +23,20 @@ export const maxLength = (maxLength) => {
     let err = null
     if (!isEmptyValue(value) && value.length > maxLength) {
       err = {error: Errors.maxLength, params: {value, maxLength}}
+    }
+    return err
+  }
+}
+
+export const oneOf = (domain) => {
+  if (!isArray(domain) || domain.length === 0) {
+    throw new Error('Invalid domain array given to oneOf')
+  }
+  const domainSet = new Set(domain)
+  return ({value}) => {
+    let err = null
+    if (!isEmptyValue(value) && !domainSet.has(value)) {
+      err = {error: Errors.oneOf, params: {value, domain}}
     }
     return err
   }

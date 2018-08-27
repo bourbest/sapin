@@ -1,7 +1,7 @@
 import {isArray, isFunction, isNil} from 'lodash'
-import { PropertyDefinition, ValueTypes } from './types'
-import { isPureObject } from './utils'
-import { getString} from './getters'
+import {PropertyDefinition, ValueTypes} from './types'
+import {isPureObject} from './utils'
+import {getString} from './getters'
 
 function validateSchema (schema, pathArray, noTypes) {
   for (let propName in schema) {

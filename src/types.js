@@ -1,5 +1,5 @@
 import {identity, isArray, isFunction, every, isNil} from 'lodash'
-import { getString, getNumber, getDate, getTrimmedString, getFriendlyNumber } from './getters'
+import { getString, getNumber, getDate, getTrimmedString, getFriendlyNumber , getBool} from './getters'
 import {isOfTypeArray, isOfTypeBool, isOfTypeDate, isNumber, isOfTypeObject, isOfTypeString} from './type-validators'
 import {isPureObject} from './utils'
 import Schema from './Schema'
@@ -98,7 +98,11 @@ export const date = (validators) => {
 }
 
 export const boolean = (validators) => {
-  return new PropertyDefinition(ValueTypes.value, identity, validators, isOfTypeBool)
+  return new PropertyDefinition(ValueTypes.value, getBool, validators, isOfTypeBool)
+}
+
+export const object = (validators) => {
+  return new PropertyDefinition(ValueTypes.value, identity, validators, isOfTypeObject)
 }
 
 const getCollectionType = (validators) => {
