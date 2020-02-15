@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/bourbest/sapin"
   },
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Create Schema validation and transformation using a declarative paradigm",
   "main": "./lib/sapin.min.js",
   "module": "./src/index.js",
@@ -14,7 +14,7 @@
     "lint": "eslint ./src/*.js",
     "test": "nyc mocha",
     "coverage": "nyc --require babel-register report --reporter=text-lcov | coveralls",
-    "build": "webpack --config ./webpack.config"
+    "build": "webpack --config ./webpack.config.js --env production"
   },
   "peerDependencies": {
     "lodash": "^4.17.5",
@@ -30,16 +30,17 @@
     "babel-eslint": "^8.2.3",
     "babel-loader": "^7.1.4",
     "babel-plugin-istanbul": "^4.1.6",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "babel-register": "^6.26.0",
     "chai": "4.1.2",
     "coveralls": "^3.0.1",
     "eslint": "^4.19.1",
     "eslint-standard": "^1.0.2",
     "mocha": "^5.1.1",
-    "nyc": "^11.7.1",
+    "nyc": "^15.0.0",
     "standard": "^11.0.1",
-    "webpack": "^3.11.0"
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
   },
   "nyc": {
     "require": [
@@ -57,7 +58,7 @@
   ],
   "bugs": "https://github.com/bourbest/sapin/issues",
   "dependencies": {
-    "lodash": "^4.17.5",
-    "date-fns": "^1.29.0"
+    "date-fns": "^1.29.0",
+    "lodash": "^4.17.15"
   }
 }

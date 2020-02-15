@@ -26,14 +26,14 @@ const compareWithOtherField = (value, otherFieldName, otherFieldLabel, siblings,
   const val = getter(value)
   const otherVal = getter(siblings[otherFieldName])
 
-  if (!isNaN(val) && !isNaN(otherVal) && typeof val === typeof otherVal) {
-    err = op(val, otherVal) ? null : {
-      error: errorCode,
-      params: {
-        value,
-        otherFieldValue: otherVal,
-        otherFieldLabel
-      }
+  if (isNaN(val) || isNaN(otherVal)) return null
+
+  err = op(val, otherVal) ? null : {
+    error: errorCode,
+    params: {
+      value,
+      otherFieldValue: otherVal,
+      otherFieldLabel
     }
   }
 

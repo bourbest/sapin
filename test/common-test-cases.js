@@ -76,7 +76,7 @@ export const testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty = (makeV
   it('returns null when other field is an empty string', function () {
     const ret = validator({
       value: validValue,
-      otherField: '',
+      otherField: 'a',
       getter
     })
     expect(ret).to.equal(null)
