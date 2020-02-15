@@ -50,6 +50,16 @@ export const requiredIfOtherFieldIsEmpty = (otherFieldName) => {
   }
 }
 
+export const requiredIfOtherFieldIsNotEmpty = (otherFieldName) => {
+  return (params) => {
+    const otherFieldValue = get(params.siblings, otherFieldName, null)
+    if (!isEmptyValue(otherFieldValue)) {
+      return required(params)
+    }
+    return null
+  }
+}
+
 export const requiredIfOtherFieldIsGiven = (otherFieldName) => {
   return (params) => {
     const otherFieldValue = get(params.siblings, otherFieldName, null)

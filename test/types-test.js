@@ -1,7 +1,7 @@
 import {expect} from 'chai'
 import {getString, getTrimmedString, getNumber, getFriendlyNumber} from '../src/getters'
 import {isNumber, isOfTypeBool, isOfTypeArray, isOfTypeDate, isOfTypeObject, isOfTypeString} from '../src/type-validators'
-import {ValueTypes, string, number, boolean, date, arrayOf, dictionary, PropertyDefinition} from '../src/types'
+import {ValueTypes, string, number, boolean, date, object, arrayOf, dictionary, PropertyDefinition} from '../src/types'
 import Schema from '../src/Schema'
 
 function someFunction () {}
@@ -120,6 +120,9 @@ describe('date', function () {
   itConstructsAValidPropertyType(date, isOfTypeDate)
 })
 
+describe('object', function () {
+  itConstructsAValidPropertyType(object, isOfTypeObject)
+})
 // for collections
 function itSetsTypeValidatorAsFirstCollectionValidator (type, typeValidator) {
   it('sets a type validator as the first collection validator when given none', function () {

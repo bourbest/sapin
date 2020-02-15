@@ -1,6 +1,4 @@
 const webpack = require('webpack')
-const path = require('path')
-const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin
 const pkg = require('./package.json')
 
 const buildConfig = (env) => {
@@ -13,17 +11,9 @@ const buildConfig = (env) => {
 
 
   outputFile = libraryName + '.min.js'
-  plugins.push(new UglifyJsPlugin({
-    parallel: true,
-    uglifyOptions: {
-      ecma: 5,
-      compress: {warnings: false},
-      sourceMap: false,
-      output: {comments: false, beautify: false}
-    }
-  }))
 
   return config = {
+    mode: 'production',
     entry: __dirname + '/src/index.js',
     devtool: 'source-map',
     output: {
@@ -32,6 +22,12 @@ const buildConfig = (env) => {
       library: libraryName,
       libraryTarget: 'umd',
       umdNamedDefine: true
+    },
+    performance: {
+      hints: 'warning'
+    },
+    optimization: {
+      minimize: true
     },
     externals: {
        lodash: {

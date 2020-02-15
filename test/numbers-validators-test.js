@@ -128,23 +128,9 @@ describe('isLte', function () {
   testNumberComparerValidatorFunction(isLte(3), 'isLte', 3, 4)
 })
 
-const testThatValidatorHandlesBadNumberCorrectly = (makeValidator) => {
-  const validate = makeValidator('otherField', 'fieldname')
-  it('returns null when otherField is an invalid number', function () {
-    const ret = validate({value: '5', siblings: {otherField: 'sdfs'}, getter: getNumber})
-    expect(ret).to.equal(null)
-  })
-
-  it('returns null when a value is not a number', function () {
-    const ret = validate({value: 'yo', siblings: {otherField: 'dfsd'}, getter: getNumber})
-    expect(ret).to.be.null
-  })
-}
-
 describe('isEqualToField', function () {
   testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isEqualToField('test', 'test'))
   testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isEqualToField)
-  testThatValidatorHandlesBadNumberCorrectly(isEqualToField)
 
   it('returns Errors.isEqualToField when given 0 and otherField is 1', function () {
     const validate = isEqualToField('otherField', 'age')
@@ -164,12 +150,17 @@ describe('isEqualToField', function () {
     const ret = validate({value: '0', siblings: {otherField: '0'}, getter: getNumber})
     expect(ret).to.equal(null)
   })
+
+  it('returns null when given text', function () {
+    const validate = isEqualToField('otherField')
+    const ret = validate({value: 'abc', siblings: {otherField: '0'}, getter: getNumber})
+    expect(ret).to.equal(null)
+  })
 })
 
 describe('isGtField', function () {
   testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isGtField('test', 'test'))
   testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isGtField)
-  testThatValidatorHandlesBadNumberCorrectly(isGtField)
 
   it('returns Errors.isGtField when given 0 and otherField is 0', function () {
     const validate = isGtField('otherField', 'age')
@@ -194,7 +185,6 @@ describe('isGtField', function () {
 describe('isGteToField', function () {
   testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isGteToField('test', 'test'))
   testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isGteToField)
-  testThatValidatorHandlesBadNumberCorrectly(isGteToField)
 
   it('returns null when given 0 and otherField is 0', function () {
     const validate = isGteToField('otherField')
@@ -225,7 +215,6 @@ describe('isGteToField', function () {
 describe('isLtField', function () {
   testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isLtField('test', 'test'))
   testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isLtField)
-  testThatValidatorHandlesBadNumberCorrectly(isLtField)
 
   it('returns Errors.isLtField when given 0 and otherField is 0', function () {
     const validate = isLtField('otherField', 'age')
@@ -250,7 +239,6 @@ describe('isLtField', function () {
 describe('isLteToField', function () {
   testThatValidatorDoesNotReturnAnErrorWhenFieldIdEmpty(isLteToField('test', 'test'))
   testThatValidatorDoesNotReturnAnErrorWhenOtherFieldIsEmpty(isLteToField)
-  testThatValidatorHandlesBadNumberCorrectly(isLteToField)
 
   it('returns null when given 0 and otherField is 0', function () {
     const validate = isLteToField('otherField')
